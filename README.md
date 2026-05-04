@@ -11,6 +11,16 @@ We use types to prevent bugs, contracts to document intent, property tests to ve
 3. **Property tests verify behavior** — associativity, identity, commutativity via `proptest`
 4. **Scripts enforce rules** — `check-contracts.py` verifies Hoare triples and forbids `unwrap()`
 
+## How It Works
+
+When you run `kimi` (Kimi Code CLI) in a project directory, it automatically discovers and injects `AGENTS.md` into the system prompt via `${KIMI_AGENTS_MD}`. This means **zero configuration** — place the file and Kimi follows your rules.
+
+Supported locations (checked in order):
+1. `.kimi/AGENTS.md` — project-local config (highest priority)
+2. `AGENTS.md` — standard location
+
+Files are merged root→leaf with source annotations. Deeper directories override parent rules.
+
 ## Quick Start
 
 ### Option A: Interactive installer
@@ -39,6 +49,9 @@ cargo install --git https://github.com/ekhodzitsky/kimi-dotfiles cargo-kimi
 # Use in any project
 cargo kimi init --template rust-only --yes
 cargo kimi check
+
+# Place in .kimi/ for automatic Kimi CLI discovery
+cargo kimi init --template rust-only --location .kimi --yes
 ```
 
 ### Option D: Manual copy
