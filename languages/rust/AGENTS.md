@@ -1,167 +1,237 @@
-# Instructions for Rust Code Generation (Kimi K2.6)
+# Rust Guidelines: Mathematical Programming
 
-> Version: 1.0.0 | Source: kimi-dotfiles/rust/
+> Version: 1.0.0 | Source: kimi-dotfiles/languages/rust/
 >
-> Usage: copy into `src/AGENTS.md` or `.kimi/AGENTS.md` of a Rust project.
+> These rules apply to all `.rs` files. They extend [FORMALISM.md](../../FORMALISM.md), [GLOSSARY.md](../../GLOSSARY.md), [PIPELINE.md](../../PIPELINE.md), and [SEVERITY.md](../../SEVERITY.md).
 
 ## 0. Meta Principle
 
-Kimi K2.6 processes code as data. The more structured and explicit the code, the more accurate the generation.
-Prefer standard Rust idioms; avoid "clever" constructions.
+Rust's type system is a theorem prover. Use it to prove correctness at compile time. What cannot be proven by types must be proven by property tests.
 
 ---
 
-## I. Decomposition: Module = Responsibility
+## I. Types as Axioms
 
-### Rule 1.1: One File = One Responsibility
+### Rule 1.1: Newtype for Every Semantic Distinction
 
-Do not mix abstraction levels in a single file.
-
-```rust
-// BAD: parser.rs — parses JSON, validates schema, and writes to DB
-
-// GOOD:
-// - json_parser.rs (syntax only)
-// - schema_validator.rs (semantics only)
-// - db_writer.rs (persistence only)
-```
-
-### Rule 1.2: Module "Abstract"
-
-At the top of every module, provide a brief description:
+Never use raw primitives where meaning matters.
 
 ```rust
-//! Implements Unicode string normalization while preserving identifiers.
-//!
-//! Invariant: output is always NFC + checked for invalid characters.
-//! Dependencies: core, unicode-normalization.
-```
+// AXIOM: Price >= 0
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Price(u64); // cents
 
-### Rule 1.3: Nesting Depth ≤ 3
+// AXIOM: TaxRate in [0.0, 1.0]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct TaxRate(f64);
 
-Nested `if` inside `if` inside `match` inside `loop` is a refactoring signal.
-Use early returns, adapter functions, and `Option`/`Result` methods.
-
----
-
-## II. Functions: One Input, One Output
-
-### Rule 2.1: Function = Atomic Transaction
-
-Length ≤ 40 lines. If you scroll — decompose.
-
-```rust
-// BAD: everything in one pile
-fn process(data: Vec<Item>) -> Result<(), Error> {
-    let cleaned = data.into_iter().filter(|x| x.valid).collect::<Vec<_>>();
-    let mut db = connect_db()?;
-    for item in cleaned {
-        let transformed = transform(&item);
-        db.insert(transformed)?;
+impl TaxRate {
+    /// { rate >= 0.0 && rate <= 1.0 }
+    /// fn new(rate: f64) -> Option<TaxRate>
+    /// { Some(_) ==> rate in [0,1], None ==> rate outside [0,1] }
+    pub fn new(rate: f64) -> Option<Self> {
+        if rate >= 0.0 && rate <= 1.0 { Some(Self(rate)) } else { None }
     }
-    db.commit()?;
-    Ok(())
 }
 
-// GOOD: each step is a separate function with a contract
-/// Precondition: input may contain invalid items.
-/// Postcondition: returns only items that passed validation.
-fn filter_valid(items: Vec<Item>) -> Vec<ValidItem> { ... }
-
-/// Precondition: DB connection is active.
-/// Postcondition: transaction is committed or rolled back.
-fn persist_batch(conn: &mut Db, items: Vec<ValidItem>) -> Result<(), DbError> { ... }
+/// { price.0 >= 0 && rate is Some }
+/// fn calculate(price: Price, rate: TaxRate) -> Price
+/// { ret.0 == price.0 + (price.0 as f64 * rate.0).round() as u64 }
+pub fn calculate(price: Price, rate: TaxRate) -> Price {
+    let tax = (price.cents() as f64 * rate.0).round() as u64;
+    Price::from_cents(price.cents() + tax)
+}
 ```
 
-### Rule 2.2: Separate Pure Functions and Side Effects
+### Rule 1.2: Phantom Types for Dimensions
 
 ```rust
-// FORBIDDEN: function returns bool AND writes to log AND mutates global state
+use std::marker::PhantomData;
 
-// ALLOWED:
-fn check_invariant(state: &State) -> bool;          // pure
-fn log_violation(v: &Violation) -> io::Result<()>; // effect
+pub struct Meters;
+pub struct Seconds;
+pub struct MetersPerSecond;
+
+#[derive(Clone, Copy, Debug)]
+pub struct Quantity<T>(f64, PhantomData<T>);
+
+impl Quantity<Meters> {
+    pub fn meters(v: f64) -> Self { Self(v, PhantomData) }
+    pub fn value(&self) -> f64 { self.0 }
+}
+
+impl Quantity<Seconds> {
+    pub fn seconds(v: f64) -> Self { Self(v, PhantomData) }
+}
+
+/// { time.0 != 0.0 }
+/// fn velocity(dist: Quantity<Meters>, time: Quantity<Seconds>) -> Quantity<MetersPerSecond>
+/// { ret.0 == dist.0 / time.0 }
+pub fn velocity(
+    dist: Quantity<Meters>,
+    time: Quantity<Seconds>
+) -> Quantity<MetersPerSecond> {
+    debug_assert!(time.0 != 0.0, "time must be non-zero");
+    Quantity(dist.0 / time.0, PhantomData)
+}
 ```
 
-### Rule 2.3: Doc Comments as API Documentation
+### Rule 1.3: Typestate for State Machines
 
 ```rust
-/// Brief description (1 line).
-///
-/// # Arguments
-/// * `input` — input condition (e.g., `len > 0`, `UTF-8`).
-///
-/// # Returns
-/// * `Ok(x)` — output condition.
-/// * `Err(e)` — when and why an error occurs.
-///
-/// # Complexity
-/// O(n) time, O(1) extra space.
-///
-/// # Examples
-/// ```
-/// assert_eq!(foo(vec![1,2]), Ok(3));
-/// ```
+use std::marker::PhantomData;
+
+pub struct Disconnected;
+pub struct Connected;
+pub struct Authenticated;
+
+pub struct Session<State> {
+    socket: std::net::TcpStream,
+    _state: PhantomData<State>,
+}
+
+/// { true }
+/// fn connect(addr: &str) -> Result<Session<Connected>, io::Error>
+/// { Ok(_) ==> TCP handshake succeeded }
+impl Session<Disconnected> {
+    pub fn connect(addr: &str) -> std::io::Result<Session<Connected>> {
+        let socket = std::net::TcpStream::connect(addr)?;
+        Ok(Session { socket, _state: PhantomData })
+    }
+}
+
+/// { true }
+/// fn authenticate(self, token: &str) -> Result<Session<Authenticated>, io::Error>
+/// { Ok(_) ==> server accepted token }
+impl Session<Connected> {
+    pub fn authenticate(self, _token: &str) -> std::io::Result<Session<Authenticated>> {
+        // ... validate token
+        Ok(Session { socket: self.socket, _state: PhantomData })
+    }
+}
+
+/// { session is authenticated }
+/// fn send(&mut self, data: &[u8]) -> Result<usize, io::Error>
+/// { Ok(n) ==> n bytes written }
+impl Session<Authenticated> {
+    pub fn send(&mut self, data: &[u8]) -> std::io::Result<usize> {
+        use std::io::Write;
+        self.socket.write(data)
+    }
+}
 ```
 
 ---
 
-## III. Types: The Compiler as Co-Author
+## II. Functions as Lemmas: Hoare Logic
 
-### Rule 3.1: Newtype for Domain Typing
-
-Do not use raw primitives where semantics matter.
+### Rule 2.1: Every Public Function Has a Hoare Triple
 
 ```rust
-// BAD
-fn calculate(price: f64, tax_rate: f64) -> f64;
-
-// GOOD
-struct Price(f64);     // invariant: >= 0
-struct TaxRate(f64);   // invariant: 0.0..=1.0
-
-fn calculate(price: Price, rate: TaxRate) -> Price;
+/// { !items.is_empty() }
+/// fn average(items: &[f64]) -> f64
+/// { ret.abs_diff_eq(sum(items) / len(items), epsilon) }
+pub fn average(items: &[f64]) -> f64 {
+    debug_assert!(!items.is_empty());
+    items.iter().sum::<f64>() / items.len() as f64
+}
 ```
 
-### Rule 3.2: Result/Option Instead of Panic
+### Rule 2.2: Precondition via debug_assert!
 
-`unwrap()`, `expect()`, `panic!` — only in tests and compile-time constants.
+Use `debug_assert!` for preconditions the type system cannot enforce. Zero cost in release.
 
 ```rust
-// BAD
+/// { divisor != 0 }
+/// fn div(numerator: f64, divisor: f64) -> f64
+/// { ret == numerator / divisor }
+pub fn div(numerator: f64, divisor: f64) -> f64 {
+    debug_assert!(divisor != 0.0, "divisor must be non-zero");
+    numerator / divisor
+}
+```
+
+### Rule 2.3: Function Length ≤ 40 Lines
+
+A lemma must fit in working memory. If longer — decompose into sub-lemmas.
+
+---
+
+## III. Algebraic Structures as Traits
+
+### Rule 3.1: Mathematical Structures Are Contracts with Axioms
+
+```rust
+/// Axiom: ∀a,b,c. combine(a, combine(b, c)) == combine(combine(a, b), c)
+pub trait Semigroup: Clone + PartialEq {
+    fn combine(&self, other: &Self) -> Self;
+}
+
+/// Axiom: ∃e. ∀a. combine(e, a) == a && combine(a, e) == a
+pub trait Monoid: Semigroup {
+    fn identity() -> Self;
+}
+```
+
+### Rule 3.2: Axioms MUST Be Verified by Property Tests
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use proptest::prelude::*;
+
+    proptest! {
+        #[test]
+        fn associativity(a in any::<MyMonoid>(), b in any::<MyMonoid>(), c in any::<MyMonoid>()) {
+            let left = a.combine(&b.combine(&c));
+            let right = a.combine(&b).combine(&c);
+            assert_eq!(left, right);
+        }
+
+        #[test]
+        fn left_identity(a in any::<MyMonoid>()) {
+            assert_eq!(MyMonoid::identity().combine(&a), a);
+        }
+
+        #[test]
+        fn right_identity(a in any::<MyMonoid>()) {
+            assert_eq!(a.combine(&MyMonoid::identity()), a);
+        }
+    }
+}
+```
+
+---
+
+## IV. Error Handling: Errors as Codomain
+
+### Rule 4.1: Result/Option Instead of Panic
+
+`unwrap()`, `expect()`, `panic!` — forbidden in library code without compile-time proof.
+
+```rust
+// FORBIDDEN
 let port = env::var("PORT").unwrap().parse::<u16>().unwrap();
 
-// GOOD
+// ALLOWED: compiler proves PORT is set (const context)
+const PORT: u16 = option_env!("PORT").unwrap().parse::<u16>().unwrap();
+
+// REQUIRED: handle all cases
 let port: NonZeroU16 = env::var("PORT")
     .map_err(|e| Error::ConfigMissing("PORT", e))?
     .parse()
     .map_err(Error::InvalidPort)?;
 ```
 
-### Rule 3.3: Typestate for State Machines
-
-If an object has a lifecycle (Disconnected → Connected → Authenticated), express it in types.
-
-```rust
-struct Socket<State> { ... }
-struct Disconnected;
-struct Connected;
-
-impl Socket<Disconnected> {
-    fn connect(self, addr: &str) -> Result<Socket<Connected>, Error> { ... }
-}
-
-// Impossible to call send() on a Disconnected socket at compile time.
-```
-
 ---
 
-## IV. Iterators: Pipeline Instead of Nesting
+## V. Iterators: Composition as Proof
 
-### Rule 4.1: Iterator Method Composition
+### Rule 5.1: Iterator Chains > Nested Control Flow
 
 ```rust
-// BAD: Kimi gets lost in brackets
+// BAD: Kimi gets lost in brackets, proof is implicit
 let x = match maybe_y {
     Some(y) => match y.parse::<i32>() {
         Ok(z) if z > 0 => Some(z * 2),
@@ -170,184 +240,117 @@ let x = match maybe_y {
     None => None,
 };
 
-// GOOD: each step is a separate transformation
+// GOOD: compositional, each step is a lemma
 let x = maybe_y
     .and_then(|y| y.parse::<i32>().ok())
     .filter(|&z| z > 0)
     .map(|z| z * 2);
 ```
 
-### Rule 4.2: Enums for Mutually Exclusive States
+---
 
-Prefer enums over boolean flags or string constants.
+## VI. Unsafe: Proof Obligation
+
+### Rule 6.1: Every unsafe Block Requires a Proof
+
+```rust
+// SAFETY: ptr is valid because:
+// 1. Allocated via Box::into_raw at line 42.
+// 2. len matches allocation size (invariant of Self).
+// 3. ptr is not aliased (exclusive borrow).
+unsafe { std::slice::from_raw_parts_mut(ptr, len) }
+```
+
+### Rule 6.2: Miri Check Mandatory
+
+```bash
+cargo +nightly miri test
+```
 
 ---
 
-## V. Macros and Unsafe
+## VII. Testing: Universal Quantification
 
-### Rule 5.1: Macros Only for Boilerplate
+### Rule 7.1: Property Tests Are Mandatory for Algebraic APIs
 
-`macro_rules!` and `proc_macro` are last resorts. If you can do without — do without.
+Every `Semigroup`, `Monoid`, `Functor` implementation MUST have property tests.
 
-### Rule 5.2: Unsafe Only with Justification
+### Rule 7.2: Doc Tests Are Executable Theorems
 
-Every `unsafe` block requires a `// SAFETY:` comment:
+Every public function MUST have a doc test.
 
-```rust
-// SAFETY: `ptr` is valid because:
-// 1. Allocated via `Box::into_raw` 3 lines above.
-// 2. Not used after this block.
-// 3. `len` matches the actual allocation size.
-unsafe { slice::from_raw_parts_mut(ptr, len) }
+### Rule 7.3: Fuzzing for Parsers
+
+Every parser MUST have a fuzz target:
+
+```bash
+cargo fuzz run parse_target
 ```
-
-### Rule 5.3: Minimize Global State
-
-Avoid `static mut`, `lazy_static!` unless necessary. `thread_local!` — only for FFI or loggers.
 
 ---
 
-## VI. Naming
+## VIII. Automation
 
-### Rule 6.1: Full Paths in Use
-
-```rust
-// BAD
-use crate::utils::helper; // what does helper do?
-
-// GOOD
-use crate::validation::normalize_email; // module + function = self-documenting
-```
-
-### Rule 6.2: Descriptive Names
-
-```rust
-// BAD
-let n = calc(&cfg, &usr);
-
-// GOOD
-let total_price = calculate_total(&config, &user_profile);
-```
-
-### Rule 6.3: Examples in Doc Tests
-
-Every public API must have an `# Examples` section demonstrating a real scenario.
-
----
-
-## VII. Testing
-
-### Rule 7.1: Unit Tests in the Same File
-
-```rust
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn filter_valid_rejects_empty() {
-        assert!(filter_valid(vec![]).is_empty());
-    }
-}
-```
-
-### Rule 7.2: Property-Based Tests for Invariants
-
-```rust
-use proptest::prelude::*;
-
-proptest! {
-    #[test]
-    fn reverse_is_involution(xs in prop::collection::vec(0..100i32, 0..100)) {
-        assert_eq!(reverse(reverse(&xs)), xs);
-    }
-}
-```
-
-### Rule 7.3: Error Paths Are Tests Too
-
-Every `Err(...)` path must be covered. A "happy path" without errors is only half the code.
-
----
-
-## VIII. Dependencies
-
-### Rule 8.1: Stability > Novelty
-
-Do not add a crate for a single function. Check:
-- semver ≥ 1.0 for critical dependencies
-- Development activity
-- Size (LLM loads the API into context)
-
-### Rule 8.2: No "Utility Knife" Modules
-
-If a module is named `utils.rs` — it is a signal that abstractions are not extracted.
-
----
-
-## IX. Automation
-
-### Rule 9.1: rustfmt and clippy Are Mandatory
+### Rule 8.1: rustfmt and clippy Mandatory
 
 ```toml
-# clippy.toml or .cargo/config.toml
 [lints.clippy]
 all = "deny"
-pedantic = "warn"
 unwrap_used = "deny"
 expect_used = "deny"
 panic = "deny"
 ```
 
-### Rule 9.2: CI for Every PR
+### Rule 8.2: CI for Every PR
 
 ```bash
 cargo check --all-features
-cargo test
 cargo clippy -- -D warnings
+cargo test
 cargo doc --no-deps
 ```
 
-Verify that the public API has doc comments.
+For projects with `unsafe`:
+```bash
+cargo +nightly miri test
+```
+
+For projects with parsers:
+```bash
+cargo fuzz run target_name -- -max_total_time=60
+```
 
 ---
 
-## X. LLM-Specific Recommendations for Kimi K2.6
+## IX. LLM-Specific: What Kimi Generates Well
 
-### Rule 10.1: Module + Doc Comment + Tests > 200 Lines
+**Good:**
+- Explicit types (no inference in public APIs)
+- Small lemmas (≤ 40 lines)
+- Iterator chains (compositional proof)
+- Exhaustive match (proof by cases)
+- Standard collections
 
-If a module grows too large, Kimi loses context. Decompose early.
+**Bad:**
+- Nested match (> 3 levels)
+- Multiple closures in one line
+- Custom macros / DSLs
+- Complex HRTB
 
-### Rule 10.2: Avoid "Compressed" Syntax
-
-One-liners with 5 levels of nesting, closures inside closures, "clever" lifetime tricks — Kimi generates these with errors.
-
-**Alternative:** 3 clear lines instead of 1 "elegant" line.
-
-### Rule 10.3: Prefer Idioms Kimi Knows Well
-
-**Generates well:**
-- Iterator chains
-- `?` operator
-- Exhaustive `match`
-- Standard collections (`Vec`, `HashMap`, `BTreeMap`)
-
-**Generates poorly:**
-- Custom DSLs on macros
-- Complex generic constructions / Higher-Ranked Trait Bounds
-- "Smart" wrappers over `std`
+**Rule:** If Kimi would need to "reason" about code, decompose it so reasoning is in types.
 
 ---
 
-## Pre-Generation Checklist for Kimi
+## X. Checklist
 
-- [ ] Every public function has a doc comment with examples
-- [ ] No `unwrap`, `expect`, `panic!` outside tests
-- [ ] No `unsafe` without `// SAFETY:`
-- [ ] Every module starts with `//! abstract`
-- [ ] `cargo clippy` passes without warnings
-- [ ] Functions ≤ 40 lines
-- [ ] Nesting depth ≤ 3 levels
-- [ ] All error paths are covered by tests
-- [ ] No implicit `dyn Trait` without necessity
-- [ ] No redundant `mut` variables
+- [ ] Hoare triple in doc comment
+- [ ] Invariant in type (Newtype/Phantom/Typestate) or `debug_assert!`
+- [ ] No unwrap/expect/panic without compile-time proof
+- [ ] Property tests for algebraic axioms
+- [ ] Doc tests for examples
+- [ ] unsafe has SAFETY proof + Miri check
+- [ ] Function ≤ 40 lines
+- [ ] No nesting > 3 levels
+- [ ] clippy passes without warnings
+- [ ] All tests pass (unit + property + doc)
+- [ ] Fuzzing passes (if parser)

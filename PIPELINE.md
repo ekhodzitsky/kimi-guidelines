@@ -1,99 +1,114 @@
-# Formal Development Pipeline for Kimi K2.6
+# Development Pipeline: Proof Construction
 
-> Version: 1.0.0 | Mathematical approach: Specification → Proof Sketch → Implementation → Verification
+> Version: 1.0.0 | Mathematical approach: Specification → Type-Level Proof → Implementation → Property Verification → Refinement
 
 ## Overview
 
-Every code generation task follows a formal pipeline inspired by mathematical proof construction:
+Every code generation task follows a proof-construction pipeline. Each stage has defined inputs, outputs, and acceptance criteria.
 
 ```
-Specification → Proof Sketch → Implementation → Verification → Refinement
+Specification → Type-Level Proof → Implementation → Verification → Refinement
 ```
 
-This replaces "idea → code" with a rigorous process where each stage has defined inputs, outputs, and acceptance criteria.
+This is not a fantasy workflow. It is a disciplined sequence that Kimi can execute in a single session.
 
 ---
 
 ## Stage 1: Specification
 
-**Input:** User requirement, domain context, existing codebase.
-**Output:** Formal contract (types + invariants + pre/postconditions).
+**Input:** User requirement, domain context.
+**Output:** Formal contract (types + invariants + Hoare triple + complexity).
 
-### Kimi Actions
+### Actions
 
-1. **Identify the seam** — where does this module fit in the existing architecture?
-2. **Define the interface** — what is the smallest surface area that provides the required leverage?
+1. **Identify the seam** — where does this lemma fit?
+2. **Define the interface** — what is the smallest surface area?
 3. **Write the contract**:
-   ```markdown
-   ## Specification: normalize_email
-   
-   **Type:** `fn(String) -> Result<String, EmailError>`
-   
-   **Invariant:** output is lowercase, contains exactly one '@', no whitespace.
-   
-   **Precondition:** input is valid UTF-8 (enforced by String type).
-   
-   **Postcondition:**
-   - Ok(email): satisfies RFC 5322 subset, invariant holds.
-   - Err(EmailError::InvalidFormat): input does not contain '@'.
-   - Err(EmailError::Empty): input is empty string.
-   
-   **Complexity:** O(n) time, O(1) extra space.
-   ```
 
-4. **Apply deletion test** — would deleting this function concentrate complexity or move it?
+```markdown
+## Spec: normalize_email
 
-**Acceptance:** Specification is self-contained. A human can implement it without asking questions.
+**Type:** `fn(String) -> Result<String, EmailError>`
+
+**Invariant:** output is lowercase, contains exactly one '@', no whitespace.
+
+**Hoare triple:**
+```
+{ true }
+fn normalize_email(s: String) -> Result<String, EmailError>
+{
+  Ok(r)  ==> r.is_lowercase() && r.matches('@').count() == 1 && !r.contains(' ')
+  Err(EmailError::Empty)       ==> s.is_empty()
+  Err(EmailError::NoAt)        ==> !s.contains('@')
+  Err(EmailError::Whitespace)  ==> s.contains(' ')
+}
+```
+
+**Complexity:** O(n) time, O(n) space (for allocation).
+```
+
+4. **Apply deletion test** — would deleting this function concentrate complexity?
+
+**Acceptance:** Specification is self-contained. A human can implement it without questions.
 
 ---
 
-## Stage 2: Proof Sketch
+## Stage 2: Type-Level Proof
 
 **Input:** Specification.
-**Output:** Argument that implementation is possible and correct.
+**Output:** Type design that encodes the contract.
 
-### Kimi Actions
+### Actions
 
-1. **Type-level proof** — can the types express all invariants?
-   - If not: refine types (Newtype, Typestate, Phantom Type).
-2. **Algorithm selection** — which algorithm satisfies the complexity bound?
-3. **Error path enumeration** — list all failure modes and their types.
-4. **Write the sketch**:
-   ```markdown
-   ## Proof Sketch
-   
-   We iterate over bytes once (O(n)), tracking:
-   - at_seen: bool (ensures exactly one '@')
-   - whitespace_seen: bool (ensures no whitespace)
-   
-   At each step, we maintain: "all prior bytes satisfy invariant subset."
-   
-   Termination: i == len(input). At this point, invariant is fully satisfied
-   or we return Err with the first violation found.
-   ```
+1. **Can invariants be encoded in types?**
+   - If yes: design Newtype / Phantom type / Typestate / const generics
+   - If no: document why, use `debug_assert!` as runtime check
 
-**Acceptance:** Sketch convincingly argues correctness. No hand-waving.
+2. **Can errors be made unrepresentable?**
+   - Example: instead of `Email(String)` with validation, use `Email` that can only be constructed via `parse`
+
+3. **Does the type system prevent invalid transitions?**
+   - Use Typestate for state machines
+   - Use `&mut` vs `&` to encode uniqueness
+
+4. **Write the type sketch:**
+
+```rust
+// Type-level proof sketch:
+pub struct Email(String); // invariant enforced by constructor
+
+impl Email {
+    /// { true }
+    /// fn parse(s: String) -> Result<Email, EmailError>
+    /// { Ok(_) ==> invariant holds, Err(_) ==> invariant violated }
+    pub fn parse(s: String) -> Result<Self, EmailError> {
+        // ... validation ensures invariant
+    }
+}
+```
+
+**Acceptance:** The type system prevents at least one class of bugs that would otherwise need a test.
 
 ---
 
 ## Stage 3: Implementation
 
-**Input:** Specification + Proof Sketch.
+**Input:** Specification + Type sketch.
 **Output:** Code satisfying the contract.
 
-### Kimi Actions
+### Actions
 
-1. **Generate code** following `AGENTS.md` rules:
-   - Functions ≤ 40 lines
-   - No unwrap/force-unwrap in production
-   - Iterator chains > nested control flow
-   - Doc comments with examples
+1. **Generate code** following `AGENTS.md`:
+   - Functions ≤ 40 lines (one lemma per screen)
+   - Hoare triple in doc comment
+   - `debug_assert!` for preconditions not in types
+   - No `unwrap`/`expect`/`panic!` without type-level proof
 
-2. **Self-review against checklist**:
-   - [ ] Every public function has doc comment
-   - [ ] No unwrap/expect/panic outside tests
-   - [ ] No unsafe without SAFETY comment
-   - [ ] Functions ≤ 40 lines
+2. **Self-review checklist**:
+   - [ ] Hoare triple written
+   - [ ] Invariant encoded in type or `debug_assert!`
+   - [ ] No unwrap outside tests
+   - [ ] Function ≤ 40 lines
    - [ ] Nesting depth ≤ 3
 
 **Acceptance:** Code compiles. Doc tests pass.
@@ -103,42 +118,48 @@ This replaces "idea → code" with a rigorous process where each stage has defin
 ## Stage 4: Verification
 
 **Input:** Implementation.
-**Output:** Verified module with test coverage and severity report.
+**Output:** Verified module with test coverage.
 
-### Kimi Actions
+### Actions
 
 1. **Static verification:**
    ```bash
-   cargo check --all-features   # or swift build
-   cargo clippy -- -D warnings  # or swiftlint
-   cargo doc --no-deps          # verify all docs compile
+   cargo check --all-features
+   cargo clippy -- -D warnings
+   cargo doc --no-deps
    ```
 
-2. **Dynamic verification:**
+2. **Property verification (mandatory):**
+   - Identify algebraic structure (Semigroup, Monoid, Functor, etc.)
+   - Write property tests for all axioms:
+     ```rust
+     proptest! {
+         #[test]
+         fn associativity(a, b, c) { assert_eq!(op(a, op(b, c)), op(op(a, b), c)); }
+         #[test]
+         fn identity(a) { assert_eq!(op(id, a), a); }
+     }
+     ```
+
+3. **Dynamic verification:**
    - Unit tests for happy path
    - Unit tests for each error path
-   - Property-based tests for invariants
    - Doc tests for examples
 
-3. **Review report:**
-   ```markdown
-   ## Verification Report: normalize_email
-   
-   | Check | Status |
-   |-------|--------|
-   | Compiles | ✅ |
-   | Clippy clean | ✅ |
-   | Doc tests pass | ✅ |
-   | Unit tests (happy) | ✅ |
-   | Unit tests (errors) | ✅ |
-   | Property tests | ✅ |
-   | Functions ≤ 40 lines | ✅ |
-   | No unwrap | ✅ |
-   
-   **Severity:** None. Module approved.
+4. **Unsafe verification (if applicable):**
+   ```bash
+   cargo +nightly miri test
    ```
 
-**Acceptance:** Zero CRITICAL, zero MAJOR. All tests pass.
+5. **Parser verification (if applicable):**
+   ```bash
+   cargo fuzz run target_name
+   ```
+
+**Acceptance:**
+- All checks pass
+- Property tests cover all axioms
+- Zero CRITICAL, zero MAJOR issues (see SEVERITY.md)
 
 ---
 
@@ -149,68 +170,42 @@ This replaces "idea → code" with a rigorous process where each stage has defin
 
 ### Rules
 
-1. **Invariants are immutable.** Performance optimizations must not violate the contract.
+1. **Invariants are immutable.** Optimizations must not weaken the contract.
 2. **Benchmark before optimizing.** If no benchmark, no optimization.
-3. **Unsafe is a last resort.** Requires updated Proof Sketch showing why safe Rust/Swift cannot satisfy constraints.
+3. **Unsafe is a last resort.** Requires updated type-level proof showing why safe Rust cannot satisfy constraints.
 
 ---
 
 ## Complexity Gate
 
-| Task Complexity | Pipeline Stages | Review Depth |
-|----------------|-----------------|--------------|
-| **TRIVIAL** (≤ 5 lines, no new types) | Spec → Impl | Self-check only |
-| **SMALL** (1 function, 1 new type) | Spec → Proof Sketch → Impl → Verify | Quick review |
-| **MEDIUM** (new module, multiple functions) | Full pipeline | Formal review with severity report |
-| **LARGE** (new subsystem, multiple modules) | Full pipeline × N modules | Multi-agent review (Implementer → Verifier → Skeptic) |
+| Complexity | Pipeline | What Defines It |
+|------------|----------|----------------|
+| **TRIVIAL** | Spec → Impl | ≤ 5 lines, no new types, standard library only |
+| **SMALL** | Spec → Type Proof → Impl → Verify | 1 function, 1 new type, no state machine |
+| **MEDIUM** | Full pipeline | New module, multiple types, algebraic structure |
+| **LARGE** | Full pipeline + spec file | New subsystem, multiple modules, state machines |
+
+For LARGE tasks, write a `.spec.md` file before implementation.
 
 ---
 
-## Agent Roles
+## Single-Session Execution
 
-When complexity is MEDIUM or above, assign roles:
-
-### Specifier
-Writes Specification and Proof Sketch. Focuses on correctness, not implementation details.
-
-### Implementer
-Generates code from Specification. Focuses on idiomatic code following AGENTS.md.
-
-### Verifier
-Runs verification suite, produces severity report. Does not write code, only evaluates.
-
-### Skeptic (for LARGE tasks)
-Challenges the Specification. Asks: "What if input is empty? What if this runs concurrently? What if the dependency is unavailable?"
-
----
-
-## Usage with Kimi
-
-Trigger the pipeline explicitly:
+Kimi executes this pipeline in one conversation. No multi-agent fantasy. One model, one session, disciplined steps:
 
 ```
 User: "Implement email normalization"
 
-Kimi: "I'll follow the formal pipeline.
-
-**Stage 1: Specification**
-[Writes contract]
-
-Do you approve the specification?"
-
-User: "Yes"
-
-Kimi: "**Stage 2: Proof Sketch**
-[Writes argument]
-
-**Stage 3: Implementation**
-[Generates code]
-
-**Stage 4: Verification**
-[Runs tests, produces report]"
+Kimi:
+[Stage 1: Spec]
+[Stage 2: Type Proof]
+[Stage 3: Impl]
+[Stage 4: Verify]
+Done.
 ```
 
-Or request specific stages:
-- "Write a specification for X"
-- "Review this implementation against its specification"
-- "Run verification on module Y"
+Or step-by-step on request:
+- "Write a spec for X"
+- "Design types for this spec"
+- "Implement from this type sketch"
+- "Verify this implementation"

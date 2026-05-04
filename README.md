@@ -1,109 +1,118 @@
 # kimi-dotfiles
 
-Composable configuration, instructions, and skills for **Kimi K2.6** (Moonshot AI).
+Composable mathematical programming guidelines for **Kimi K2.6** (Moonshot AI) and **Rust**.
 
-Designed to be **imported into existing projects** without conflicts — you pick what you need.
-Built on a **mathematical/formal approach** to programming: contracts, invariants, proofs, verification.
+We treat code as mathematical proof: every function is a lemma, every module is a theorem, types are axioms.
 
 ## Philosophy
 
-This repository treats code generation as **formal method construction**:
-
 ```
-Specification → Proof Sketch → Implementation → Verification → Refinement
+Specification → Type-Level Proof → Implementation → Property Verification → Refinement
 ```
 
-Every module starts with a contract. Every function has pre/postconditions. Every invariant is explicit.
+- **Types as axioms** — encode invariants in the type system (Curry-Howard)
+- **Functions as lemmas** — Hoare triples in doc comments
+- **Properties as theorems** — universal quantification via proptest, not manual examples
+- **Errors as codomain** — `Result` is mathematical result, not exception
 
 ## Structure
 
 ```
 kimi-dotfiles/
-├── AGENTS.md                    # Base rules (language-agnostic)
-├── GLOSSARY.md                  # Formal vocabulary (Invariant, Typestate, Depth, Seam...)
-├── PIPELINE.md                  # Development pipeline (Spec → Proof → Impl → Verify)
-├── SEVERITY.md                  # Issue classification (CRITICAL/MAJOR/MINOR/INFO)
+├── AGENTS.md                    # Base rules (language-agnostic mathematical principles)
+├── FORMALISM.md                 # Concrete tools: Hoare triples, Phantom types, Miri, fuzzing
+├── GLOSSARY.md                  # Mathematical vocabulary
+├── PIPELINE.md                  # Development pipeline
+├── SEVERITY.md                  # Issue classification (axiom violation = CRITICAL)
 ├── README.md                    # This file
-├── INSTALL.md                   # Detailed integration guide
+├── CHANGELOG.md                 # Version history
+├── LICENSE                      # MIT
+├── INSTALL.md                   # Integration guide
 ├── install.sh                   # Interactive installer
+├── .gitignore
 ├── .github/workflows/lint.yml   # CI for the repo itself
 ├── languages/
-│   ├── rust/AGENTS.md           # Full Rust guidelines
-│   └── swift/AGENTS.md          # Full Swift guidelines
+│   └── rust/AGENTS.md           # Full Rust guidelines
 ├── templates/
 │   ├── minimal/AGENTS.md        # Base only
 │   ├── rust-only/AGENTS.md      # Base + Rust
-│   ├── swift-only/AGENTS.md     # Base + Swift
-│   └── full/AGENTS.md           # Base + Rust + Swift
+│   └── full/AGENTS.md           # Base + Rust
 ├── examples/
-│   └── existing-project/        # How to merge with existing rules
-└── skills/
-    ├── SKILL.md                 # Template for new skills
-    ├── examples/                # Ready-made skills
-    └── types/                   # Skill categories
-        ├── specification.md     # Formal contract generation
-        ├── verification.md      # Static + dynamic verification
-        └── refactoring.md       # Structural improvement
+│   ├── existing-project/        # How to merge with existing rules
+│   └── rust-demo/               # Real Cargo project with Monoid, Phantom types, SortedVec
+└── scripts/                     # Build tools (future)
 ```
 
 ## Quick Start
 
-### Option A: One-shot copy
+### Option A: Interactive installer
 
 ```bash
-# Copy everything into your project
-cp -r kimi-dotfiles/languages/rust/* my-rust-project/
-
-# Or use the interactive installer
-cd my-project
+cd your-rust-project
 bash /path/to/kimi-dotfiles/install.sh
 ```
 
-### Option B: Symlink (keeps updates)
+### Option B: One-liner (non-interactive)
 
 ```bash
-# Rust project
-ln -s ~/kimi-dotfiles/languages/rust/AGENTS.md my-rust-project/src/AGENTS.md
-
-# Swift project
-ln -s ~/kimi-dotfiles/languages/swift/AGENTS.md my-swift-project/AGENTS.md
+curl -sSL https://raw.githubusercontent.com/ekhodzitsky/kimi-dotfiles/main/install.sh | bash -s -- --template rust-only --yes
 ```
 
-### Option C: Compose manually
+### Option C: Manual copy
 
-Copy a template from `templates/` and add your project-specific rules at the bottom.
-
-## Design Philosophy: Composable & Non-Conflicting
-
-Every file in this repo is designed to be **mixed with existing project rules**:
-
-- **Base rules** (`AGENTS.md`) are generic — they don't conflict with language-specific rules
-- **Language rules** live in `languages/` — import only what you use
-- **Templates** show how to combine layers
-- **All rules are additive** — they don't override, they extend
-
-When Kimi reads multiple `AGENTS.md` files, deeper ones override parent ones. This repo uses that hierarchy intentionally:
-
-```
-project-root/AGENTS.md          # Your project-specific rules (highest priority)
-src/AGENTS.md or .kimi/AGENTS.md # Language-specific rules from this repo
-~/.config/kimi/AGENTS.md         # Base rules from this repo (lowest priority)
+```bash
+cp kimi-dotfiles/templates/rust-only/AGENTS.md your-project/AGENTS.md
+cp kimi-dotfiles/.cargo/config.toml your-project/.cargo/config.toml
 ```
 
-## Formal Foundation
+### Option D: Symlink (personal use only)
+
+```bash
+ln -s ~/kimi-dotfiles/languages/rust/AGENTS.md your-project/src/AGENTS.md
+```
+
+## Integration with Existing Projects
+
+If you already have `AGENTS.md`, copy a template and merge manually, or use `install.sh` which creates a backup.
+
+See `examples/existing-project/AGENTS.md` for merge patterns.
+
+## Key Documents
 
 | Document | Purpose |
 |----------|---------|
-| **[GLOSSARY.md](GLOSSARY.md)** | Formal vocabulary: Module, Interface, Invariant, Precondition, Postcondition, Typestate, Newtype, Depth, Seam |
-| **[PIPELINE.md](PIPELINE.md)** | Rigorous development pipeline with complexity gates and agent roles |
-| **[SEVERITY.md](SEVERITY.md)** | How to classify violations: CRITICAL (safety), MAJOR (invariants), MINOR (style), INFO (suggestions) |
+| **[FORMALISM.md](FORMALISM.md)** | Concrete patterns: Hoare triples, PhantomData, Typestate, proptest, Miri, fuzzing |
+| **[GLOSSARY.md](GLOSSARY.md)** | Mathematical terms: Lemma, Theorem, Axiom, Invariant, Monad, Homomorphism |
+| **[PIPELINE.md](PIPELINE.md)** | Formal development process with complexity gates |
+| **[SEVERITY.md](SEVERITY.md)** | CRITICAL = axiom violation, MAJOR = proof gap, MINOR = presentation, INFO = suggestion |
+
+## Example: What This Looks Like in Practice
+
+```rust
+/// { !items.is_empty() }
+/// fn average(items: &[f64]) -> f64
+/// { ret.abs_diff_eq(sum(items) / len(items), epsilon) }
+pub fn average(items: &[f64]) -> f64 {
+    debug_assert!(!items.is_empty(), "precondition: non-empty slice");
+    items.iter().sum::<f64>() / items.len() as f64
+}
+```
+
+See `examples/rust-demo/` for a complete Cargo project with:
+- `Monoid` trait with property-tested axioms
+- `Quantity<Meters>` via Phantom types
+- `SortedVec<T>` with compile-time invariant
 
 ## Versioning
 
-Lock to a version to prevent unexpected changes:
-
-```markdown
-<!-- kimi-dotfiles: base@v1.0.0, rust@v1.0.0 -->
+Pin to a tag:
+```bash
+git clone https://github.com/ekhodzitsky/kimi-dotfiles.git
+cd kimi-dotfiles
+git checkout v1.0.0
 ```
 
-See [INSTALL.md](INSTALL.md) for detailed integration strategies.
+In your project's `AGENTS.md`:
+```markdown
+<!-- kimi-dotfiles: v1.0.0 -->
+```

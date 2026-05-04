@@ -5,55 +5,78 @@
 
 ## Base Rules
 
-- **Code = data** — explicit structure beats clever compression
-- **One file = one responsibility**
-- **Functions ≤ 40 lines**
-- **Explicit error handling** — no silent failures
-- **Standard patterns** — avoid custom DSLs
-
----
+- **Types as axioms** — encode invariants in the type system
+- **Functions as lemmas** — Hoare triples in doc comments
+- **No unwrap/expect/panic** without compile-time proof
+- **Property tests** for algebraic structures
+- **Standard patterns** — no custom DSLs
 
 ## Rust-Specific Rules
 
-### Module Structure
-
-Each module starts with `//! abstract`:
-```rust
-//! Implements X. Invariant: Y. Dependencies: Z.
-```
-
 ### Types
 
-- Newtype for domain semantics: `struct Price(f64)` not raw `f64`
-- Typestate for lifecycles: `Socket<Disconnected>` → `Socket<Connected>`
-- `Result`/`Option` everywhere — no `unwrap` outside tests
+- Newtype for every semantic distinction: `struct Price(u64)` not `u64`
+- Phantom types for dimensions: `Quantity<Meters>`
+- Typestate for state machines: `Socket<Connected>`
+- `NonZeroU32`, `NonZeroU64` where applicable
 
 ### Functions
 
-- Pure vs effect separation
-- Doc comments with `# Examples`
-- Nesting depth ≤ 3 — use iterator chains
+- Hoare triple in every doc comment:
+```rust
+/// { !items.is_empty() }
+/// fn average(items: &[f64]) -> f64
+/// { ret == sum(items) / items.len() }
+```
+- `debug_assert!` for preconditions not in types
+- Max 40 lines
+- No nesting > 3 levels
+
+### Error Handling
+
+- `Result<T, Error>` with typed errors
+- `?` operator preferred
+- No `unwrap` outside `#[cfg(test)]`
+
+### Algebraic Structures
+
+```rust
+pub trait Semigroup: Clone + PartialEq {
+    /// Axiom: ∀a,b,c. combine(a, combine(b, c)) == combine(combine(a, b), c)
+    fn combine(&self, other: &Self) -> Self;
+}
+
+pub trait Monoid: Semigroup {
+    /// Axiom: ∃e. ∀a. combine(e, a) == a && combine(a, e) == a
+    fn identity() -> Self;
+}
+```
+
+Property tests MUST verify all axioms.
 
 ### Unsafe
 
-Every `unsafe` block requires `// SAFETY:` justification.
+Every `unsafe` block requires `// SAFETY:` proof + Miri check.
 
 ### Testing
 
 - `#[cfg(test)]` in same file
-- Property-based tests for invariants
-- All `Err` paths covered
+- `proptest` for property verification
+- Doc tests for examples
+- `cargo fuzz` for parsers
 
 ### Automation
 
 ```toml
 [lints.clippy]
+all = "deny"
 unwrap_used = "deny"
 expect_used = "deny"
 panic = "deny"
 ```
 
-Run: `cargo test`, `cargo clippy -- -D warnings`, `cargo doc`
+Run: `cargo test`, `cargo clippy -- -D warnings`, `cargo doc --no-deps`
+For unsafe: `cargo +nightly miri test`
 
 ---
 

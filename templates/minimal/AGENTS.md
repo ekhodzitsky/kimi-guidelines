@@ -3,35 +3,33 @@
 > Generated from kimi-dotfiles/templates/minimal
 > Version: 1.0.0
 
-<!-- This is the minimal template — base rules only, no language specifics. -->
-<!-- Add your project-specific rules below. -->
-
 ## Core Principles
 
-- **Code = data** — explicit structure beats clever compression
-- **One file = one responsibility**
-- **Functions ≤ 40 lines**
-- **Explicit error handling** — no silent failures
-- **Standard patterns** — avoid custom DSLs
+- **Types as axioms** — encode invariants in the type system (Newtype, PhantomData, Typestate)
+- **Functions as lemmas** — every public function has a Hoare triple in its doc comment
+- **No unwrap/expect/panic** without compile-time proof of safety
+- **Property tests** for all algebraic structures (associativity, identity, etc.)
+- **Standard patterns** — avoid custom DSLs and macros
 
-## Documentation
+## Hoare Triple Template
 
-Every public function must have:
-- Brief description (1 line)
-- Input/output contracts
-- Examples (executable specs)
+```rust
+/// { precondition }
+/// fn name(args) -> ReturnType
+/// {
+///   Ok(r)  ==> postcondition for success
+///   Err(e) ==> postcondition for error
+/// }
+```
 
 ## Error Handling
 
-- No unwrap/force-unwrap in production
+- `Result` / `Option` everywhere
 - Typed errors, not strings
 - All error paths tested
 
-## LLM Antipatterns
+## Testing
 
-Kimi generates poorly:
-- Deep nesting (> 3 levels)
-- One-liners with 5+ closures
-- Undocumented macros/DSLs
-
-Prefer: explicit steps, standard collections, exhaustive pattern matching.
+- Unit tests for examples
+- Property tests (proptest) for universal properties
+- Doc tests as executable theorems

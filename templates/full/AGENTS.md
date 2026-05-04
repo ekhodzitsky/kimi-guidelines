@@ -1,47 +1,32 @@
 # Project Guidelines
 
 > Generated from kimi-dotfiles/templates/full
-> Includes: base@v1.0.0 + rust@v1.0.0 + swift@v1.0.0
+> Includes: base@v1.0.0 + rust@v1.0.0
 
 ## Base Rules
 
-- **Code = data** — explicit structure beats clever compression
-- **One file = one responsibility**
-- **Functions ≤ 40 lines**
-- **Explicit error handling** — no silent failures
-- **Standard patterns** — avoid custom DSLs
-
----
+- **Types as axioms** — encode invariants in the type system
+- **Functions as lemmas** — Hoare triples in doc comments
+- **No unwrap/expect/panic** without compile-time proof
+- **Property tests** for algebraic structures
+- **Standard patterns** — no custom DSLs
 
 ## Rust Module Rules
 
 Apply to all `.rs` files:
 
-- Module doc: `//! abstract` with invariants and dependencies
-- Newtype for domain types, typestate for state machines
+- Module doc with theorem statement and invariant
+- Newtype for domain semantics, Phantom for dimensions, Typestate for lifecycles
 - `Result`/`Option` — no `unwrap`/`expect`/`panic!` outside tests
+- Hoare triple in every public function doc comment
+- `debug_assert!` for runtime preconditions
 - Iterator chains instead of nested `match`
-- `// SAFETY:` comment for every `unsafe` block
-- `#[cfg(test)]` in same file, property tests for invariants
+- `// SAFETY:` comment for every `unsafe` block + Miri check
+- Algebraic traits (`Semigroup`, `Monoid`) with property tests
+- `#[cfg(test)]` in same file, proptest for axioms
 - clippy: `unwrap_used = "deny"`, `panic = "deny"`
 
 Full reference: `kimi-dotfiles/languages/rust/AGENTS.md`
-
----
-
-## Swift Module Rules
-
-Apply to all `.swift` files:
-
-- File doc: `// MARK:` + `///` with invariants and dependencies
-- Wrapper types for domain semantics, enums with associated values for states
-- `Result`/`throws` — no `try!`/`as!`/`fatalError` outside tests
-- `guard` + method chains instead of nested `if let`
-- Minimize `@objc`/`dynamic`/`Mirror` — only for interop
-- `XCTest` with descriptive names, all error paths covered
-- SwiftLint: `force_try` disabled, `force_cast` disabled
-
-Full reference: `kimi-dotfiles/languages/swift/AGENTS.md`
 
 ---
 
