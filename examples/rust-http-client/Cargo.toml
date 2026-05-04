@@ -1,0 +1,25 @@
+[package]
+name = "rust-http-client"
+version = "0.1.0"
+edition = "2021"
+description = "Real-world HTTP client example for kimi-dotfiles guidelines"
+license = "MIT"
+repository = "https://github.com/ekhodzitsky/kimi-dotfiles"
+
+[dependencies]
+reqwest = { version = "0.12", features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1.0"
+
+[dev-dependencies]
+proptest = "1.0"
+
+[lints.clippy]
+all = "deny"
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

@@ -1,6 +1,6 @@
 # Rust Guidelines: Mathematical Programming
 
-> Version: 1.2.1 | Source: kimi-dotfiles/languages/rust/
+> Version: 1.3.0 | Source: kimi-dotfiles/languages/rust/
 >
 > These rules apply to all `.rs` files. They extend [FORMALISM.md](../../FORMALISM.md), [GLOSSARY.md](../../GLOSSARY.md), [PIPELINE.md](../../PIPELINE.md), and [SEVERITY.md](../../SEVERITY.md).
 

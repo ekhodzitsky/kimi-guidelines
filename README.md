@@ -25,6 +25,9 @@ bash /path/to/kimi-dotfiles/install.sh
 ```bash
 cd your-rust-project
 bash /path/to/kimi-dotfiles/install.sh --template rust-only --yes
+
+# With strictness level (relaxed | standard | strict):
+bash /path/to/kimi-dotfiles/install.sh --template rust-only --strictness relaxed --yes
 ```
 
 ### Option C: Manual copy
@@ -49,7 +52,11 @@ kimi-dotfiles/
 ├── INSTALL.md                   # Integration guide
 ├── install.sh                   # Interactive installer
 ├── .gitignore
-├── .cargo/config.toml           # Clippy rules (unwrap = deny, panic = deny)
+├── strictness/
+│   ├── relaxed.toml             # Warnings only — gradual adoption
+│   ├── standard.toml            # Deny unwrap/panic, warn others (default)
+│   └── strict.toml              # Deny everything — maximum rigor
+├── .cargo/config.toml           # Clippy rules (installed from strictness/ by install.sh)
 ├── scripts/
 │   └── check-contracts.py       # Mechanized contract verification
 ├── .github/workflows/lint.yml   # CI: cargo test, clippy, contract checker
@@ -90,6 +97,9 @@ pub fn calculate(price: Price, rate: TaxRate) -> Price {
 # Check that every pub fn has a contract and no forbidden unwrap()
 python3 scripts/check-contracts.py examples/rust-demo/src/
 # ✅ All contracts satisfied.
+
+# With strictness filtering:
+python3 scripts/check-contracts.py --strictness relaxed examples/rust-demo/src/
 ```
 
 CI runs this automatically on every PR.
@@ -114,16 +124,27 @@ See `examples/rust-demo/` for proof harnesses.
 | **[PIPELINE.md](PIPELINE.md)** | Development process with complexity gates |
 | **[SEVERITY.md](SEVERITY.md)** | CRITICAL = axiom violation, MAJOR = proof gap, MINOR = style, INFO = suggestion |
 
+## Migration Paths
+
+| Strictness | Clippy | Contract Checker | Best For |
+|------------|--------|-----------------|----------|
+| **relaxed** | warnings only | CRITICAL only | Existing projects, gradual adoption |
+| **standard** | deny unwrap/panic | CRITICAL + MAJOR | New projects, daily development (default) |
+| **strict** | deny everything | all violations | Greenfield, maximum rigor |
+
+Choose with `install.sh --strictness {relaxed|standard|strict}`. Default is `standard`.
+
 ## Versioning
 
 Pin to a tag:
 ```bash
 git clone https://github.com/ekhodzitsky/kimi-dotfiles.git
 cd kimi-dotfiles
-git checkout v1.2.1
+git checkout v1.3.0
 ```
 
 In your project's `AGENTS.md`:
 ```markdown
-<!-- kimi-dotfiles: v1.2.1 -->
+<!-- kimi-dotfiles: v1.3.0 -->
+<!-- Strictness: standard -->
 ```

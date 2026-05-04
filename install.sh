@@ -31,6 +31,7 @@ echo ""
 
 # Non-interactive mode support
 TEMPLATE=""
+STRICTNESS="standard"
 YES=false
 
 while [[ $# -gt 0 ]]; do
@@ -39,17 +40,26 @@ while [[ $# -gt 0 ]]; do
             TEMPLATE="$2"
             shift 2
             ;;
+        --strictness)
+            STRICTNESS="$2"
+            shift 2
+            ;;
         --yes)
             YES=true
             shift
             ;;
         --help)
-            echo "Usage: install.sh [--template minimal|rust-only|full] [--yes]"
+            echo "Usage: install.sh [--template minimal|rust-only|full] [--strictness relaxed|standard|strict] [--yes]"
             echo ""
             echo "Options:"
-            echo "  --template NAME   Use template without prompting"
-            echo "  --yes             Auto-confirm overwrites (backup still created)"
-            echo "  --help            Show this help"
+            echo "  --template NAME      Use template without prompting"
+            echo "  --strictness LEVEL   Clippy strictness: relaxed|standard|strict (default: standard)"
+            echo "  --yes                Auto-confirm overwrites (backup still created)"
+            echo "  --help               Show this help"
+            echo ""
+            echo "Examples:"
+            echo "  bash install.sh --template rust-only --strictness relaxed --yes"
+            echo "  bash install.sh --template full --strictness strict"
             exit 0
             ;;
         *)
@@ -59,6 +69,12 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+# Validate strictness
+if [[ "$STRICTNESS" != "relaxed" && "$STRICTNESS" != "standard" && "$STRICTNESS" != "strict" ]]; then
+    echo "Error: --strictness must be one of: relaxed, standard, strict"
+    exit 1
+fi
 
 # Ask user what they want if not provided
 if [ -z "$TEMPLATE" ]; then
@@ -125,6 +141,9 @@ echo ""
 echo "Installing $TEMPLATE template to $TARGET_PATH..."
 cp "$SCRIPT_DIR/templates/$TEMPLATE/AGENTS.md" "$TARGET_PATH"
 
+# Update strictness comment in the generated AGENTS.md
+sed -i.bak "s/<!-- Strictness: standard -->/<!-- Strictness: $STRICTNESS -->/" "$TARGET_PATH" && rm -f "$TARGET_PATH.bak"
+
 # Language-specific extras
 if [ "$HAS_RUST" = true ]; then
     if [ "$TEMPLATE" = "rust-only" ] || [ "$TEMPLATE" = "full" ]; then
@@ -133,14 +152,8 @@ if [ "$HAS_RUST" = true ]; then
             cp ".cargo/config.toml" ".cargo/config.toml.backup.$(date +%s)"
         fi
         mkdir -p .cargo
-        cat > .cargo/config.toml << 'EOF'
-[lints.clippy]
-all = "deny"
-unwrap_used = "deny"
-expect_used = "deny"
-panic = "deny"
-EOF
-        echo "  ✓ Created .cargo/config.toml"
+        cp "$SCRIPT_DIR/strictness/$STRICTNESS.toml" ".cargo/config.toml"
+        echo "  ✓ Created .cargo/config.toml (strictness: $STRICTNESS)"
     fi
 fi
 
@@ -159,4 +172,4 @@ echo "  2. Add project-specific rules at the bottom"
 echo "  3. Commit: git add AGENTS.md .cargo/config.toml && git commit -m 'Add kimi-dotfiles guidelines'"
 echo ""
 echo "Version lock:"
-echo "  <!-- kimi-dotfiles: v1.2.1 -->"
+echo "  <!-- kimi-dotfiles: v1.3.0 -->"

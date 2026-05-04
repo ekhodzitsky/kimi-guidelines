@@ -9,17 +9,28 @@ Checks:
 
 Usage:
     python3 scripts/check-contracts.py [path/to/src/]
+    python3 scripts/check-contracts.py --strictness relaxed [path/to/src/]
 
 Exit codes:
     0 — all contracts satisfied
     1 — violations found
 """
 
+import argparse
 import os
 import re
 import sys
 from pathlib import Path
 from typing import List, Tuple
+
+
+# Severity mapping for violation types
+SEVERITY_MAP = {
+    "UNWRAP": "CRITICAL",
+    "PANIC": "CRITICAL",
+    "MISSING_SAFETY": "CRITICAL",
+    "MISSING_HOARE": "MAJOR",
+}
 
 
 def find_rust_files(root: Path) -> List[Path]:
@@ -57,10 +68,10 @@ def is_test_context(lines: List[str], start_idx: int) -> bool:
     return False
 
 
-def check_file(path: Path) -> List[Tuple[int, str, str]]:
+def check_file(path: Path) -> List[Tuple[int, str, str, str]]:
     """Check a single Rust file for contract violations.
 
-    Returns list of (line_number, violation_type, message).
+    Returns list of (line_number, violation_type, severity, message).
     """
     violations = []
     content = path.read_text()
@@ -78,18 +89,18 @@ def check_file(path: Path) -> List[Tuple[int, str, str]]:
                 continue
             doc = extract_doc_comments(lines, idx - 1)
             if "/// {" not in doc:
-                violations.append((idx, "MISSING_HOARE", f"pub fn without Hoare triple marker `/// {{`"))
+                violations.append((idx, "MISSING_HOARE", "MAJOR", f"pub fn without Hoare triple marker `/// {{`"))
 
         # Check for unwrap/expect/panic in non-test code
         if re.search(r"\.(unwrap\(\)|expect\([^)]+\))", stripped):
             if not is_test_context(lines, idx - 1):
                 # Allow unwrap in const contexts or with compile-time proofs
                 if "const" not in stripped and "option_env!" not in stripped:
-                    violations.append((idx, "UNWRAP", f"unwrap/expect without type-level proof"))
+                    violations.append((idx, "UNWRAP", "CRITICAL", f"unwrap/expect without type-level proof"))
 
         if re.search(r"\bpanic!\s*\(", stripped):
             if not is_test_context(lines, idx - 1):
-                violations.append((idx, "PANIC", f"panic! without compile-time proof"))
+                violations.append((idx, "PANIC", "CRITICAL", f"panic! without compile-time proof"))
 
         # Check for unsafe blocks without SAFETY comment
         if "unsafe" in stripped and "// SAFETY:" not in stripped:
@@ -100,20 +111,48 @@ def check_file(path: Path) -> List[Tuple[int, str, str]]:
                     has_safety = True
                     break
             if not has_safety:
-                violations.append((idx, "MISSING_SAFETY", f"unsafe without // SAFETY: comment"))
+                violations.append((idx, "MISSING_SAFETY", "CRITICAL", f"unsafe without // SAFETY: comment"))
 
     return violations
 
 
+def severity_filter(violations: List[Tuple[Path, int, str, str, str]], strictness: str) -> List[Tuple[Path, int, str, str, str]]:
+    """Filter violations based on strictness level."""
+    if strictness == "strict":
+        return violations
+    elif strictness == "standard":
+        return [v for v in violations if v[3] in ("CRITICAL", "MAJOR")]
+    elif strictness == "relaxed":
+        return [v for v in violations if v[3] == "CRITICAL"]
+    return violations
+
+
 def main() -> int:
-    target = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(".")
+    parser = argparse.ArgumentParser(
+        description="Mechanized contract verification for Rust source files."
+    )
+    parser.add_argument(
+        "path",
+        nargs="?",
+        default=".",
+        help="Path to check (default: current directory)",
+    )
+    parser.add_argument(
+        "--strictness",
+        choices=["relaxed", "standard", "strict"],
+        default="standard",
+        help="Reporting strictness: relaxed (CRITICAL only), standard (CRITICAL+MAJOR), strict (everything). Default: standard",
+    )
+    args = parser.parse_args()
+
+    target = Path(args.path)
     rust_files = find_rust_files(target)
 
     if not rust_files:
         print(f"No .rs files found under {target}")
         return 0
 
-    all_violations: List[Tuple[Path, int, str, str]] = []
+    all_violations: List[Tuple[Path, int, str, str, str]] = []
     checked = 0
 
     for path in rust_files:
@@ -122,26 +161,29 @@ def main() -> int:
             continue
         checked += 1
         violations = check_file(path)
-        for line, vtype, msg in violations:
-            all_violations.append((path, line, vtype, msg))
+        for line, vtype, severity, msg in violations:
+            all_violations.append((path, line, vtype, severity, msg))
 
-    print(f"Checked {checked} Rust files")
+    # Apply strictness filter
+    filtered = severity_filter(all_violations, args.strictness)
+
+    print(f"Checked {checked} Rust files (strictness: {args.strictness})")
     print("=" * 60)
 
-    if not all_violations:
+    if not filtered:
         print("✅ All contracts satisfied.")
         return 0
 
     # Group by file
     current_file = None
-    for path, line, vtype, msg in sorted(all_violations, key=lambda x: (str(x[0]), x[1])):
+    for path, line, vtype, severity, msg in sorted(filtered, key=lambda x: (str(x[0]), x[1])):
         if path != current_file:
             current_file = path
             print(f"\n{path}:")
-        print(f"  Line {line:4d} [{vtype:15s}] {msg}")
+        print(f"  Line {line:4d} [{vtype:15s}] [{severity:8s}] {msg}")
 
     print(f"\n{'=' * 60}")
-    print(f"❌ Total violations: {len(all_violations)}")
+    print(f"❌ Total violations: {len(filtered)}")
     return 1
 
 

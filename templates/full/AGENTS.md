@@ -1,7 +1,9 @@
 # Project Guidelines
 
 > Generated from kimi-dotfiles/templates/full
-> Includes: base@v1.2.1 + rust@v1.2.1
+> Includes: base@v1.3.0 + rust@v1.3.0
+>
+> <!-- Strictness: standard -->
 
 This is the complete ruleset. For a shorter version, use `templates/rust-only/AGENTS.md`.
 
@@ -74,13 +76,10 @@ Every `unsafe` block requires `// SAFETY:` proof + Miri check.
 
 ### Automation
 
-```toml
-[lints.clippy]
-all = "deny"
-unwrap_used = "deny"
-expect_used = "deny"
-panic = "deny"
-```
+Clippy configuration is installed based on your chosen strictness level:
+- `relaxed` — warnings only, no CI breaks
+- `standard` — deny unwrap/panic, warn on others (default)
+- `strict` — deny everything
 
 Run: `cargo test`, `cargo clippy -- -D warnings`, `cargo doc --no-deps`
 For unsafe: `cargo +nightly miri test`

@@ -11,6 +11,9 @@ bash /path/to/kimi-dotfiles/install.sh
 
 # Or non-interactive:
 bash /path/to/kimi-dotfiles/install.sh --template rust-only --yes
+
+# With strictness level (default: standard):
+bash /path/to/kimi-dotfiles/install.sh --template rust-only --strictness relaxed --yes
 ```
 
 ### 2. Existing Project (already has AGENTS.md)
@@ -25,7 +28,7 @@ Or manually merge:
 
 ```markdown
 <!-- My Project AGENTS.md -->
-<!-- Includes kimi-dotfiles: rust@v1.2.1 -->
+<!-- Includes kimi-dotfiles: rust@v1.3.0 -->
 
 # Project-specific conventions
 - We use PostgreSQL
@@ -34,7 +37,7 @@ Or manually merge:
 ---
 
 ## Rust Module Rules
-<!-- @kimi-dotfiles: rust@v1.2.1 -->
+<!-- @kimi-dotfiles: rust@v1.3.0 -->
 [Copy from languages/rust/AGENTS.md]
 ```
 
@@ -42,6 +45,21 @@ Or manually merge:
 
 ```bash
 git submodule add https://github.com/ekhodzitsky/kimi-dotfiles.git .kimi/dotfiles
+```
+
+## Migration Paths
+
+Start with `relaxed` and upgrade as your project matures:
+
+```bash
+# Phase 1: warnings only, no CI breaks
+bash install.sh --strictness relaxed --yes
+
+# Phase 2: enforce unwrap/panic bans (default)
+bash install.sh --strictness standard --yes
+
+# Phase 3: maximum rigor
+bash install.sh --strictness strict --yes
 ```
 
 ## What to Include
@@ -59,12 +77,13 @@ Always pin to a tag:
 
 ```bash
 cd /path/to/kimi-dotfiles
-git checkout v1.2.1
+git checkout v1.3.0
 ```
 
 In your `AGENTS.md`:
 ```markdown
-<!-- kimi-dotfiles: v1.2.1 -->
+<!-- kimi-dotfiles: v1.3.0 -->
+<!-- Strictness: standard -->
 ```
 
 ## Updating
@@ -72,7 +91,7 @@ In your `AGENTS.md`:
 ```bash
 cd /path/to/kimi-dotfiles
 git fetch origin
-git checkout v1.2.1  # New stable version
+git checkout v1.3.0  # New stable version
 ```
 
 Then re-run `install.sh` in your projects.

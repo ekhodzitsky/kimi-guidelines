@@ -1,0 +1,12 @@
+# Generated benchmark artifacts
+results/
+*.json
+*.rs.tmp
+*.log
+
+# Build artifacts
+target/
+Cargo.lock
+
+# OS files
+.DS_Store

@@ -24,6 +24,10 @@ jobs:
           test -d templates/minimal
           test -d templates/rust-only
           test -d templates/full
+          test -d strictness
+          test -f strictness/relaxed.toml
+          test -f strictness/standard.toml
+          test -f strictness/strict.toml
           test -d examples/rust-demo
           test -f examples/rust-demo/Cargo.toml
 
