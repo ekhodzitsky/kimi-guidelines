@@ -2,10 +2,11 @@
 //!
 //! Invariant: String concatenation is associative with "" as identity.
 
-use std::marker::PhantomData;
-
 /// Axiom: ∀a,b,c. combine(a, combine(b, c)) == combine(combine(a, b), c)
 pub trait Semigroup: Clone + PartialEq {
+    /// { true }
+    /// fn combine(&self, other: &Self) -> Self
+    /// { ret == self composed with other }
     fn combine(&self, other: &Self) -> Self;
 }
 
@@ -13,6 +14,9 @@ pub trait Semigroup: Clone + PartialEq {
 /// - Associativity (inherited from Semigroup)
 /// - Identity: ∃e. ∀a. combine(e, a) == a && combine(a, e) == a
 pub trait Monoid: Semigroup {
+    /// { true }
+    /// fn identity() -> Self
+    /// { ∀a. combine(identity(), a) == a && combine(a, identity()) == a }
     fn identity() -> Self;
 }
 
@@ -40,6 +44,20 @@ impl Monoid for String {
 mod tests {
     use super::*;
     use proptest::prelude::*;
+
+    /// Doc test: string monoid
+    /// ```
+    /// use rust_demo::algebra::*;
+    /// let a = "hello".to_string();
+    /// let b = "world".to_string();
+    /// assert_eq!(a.combine(&b), "helloworld");
+    /// ```
+    #[test]
+    fn combine_concatenates() {
+        let a = "hello".to_string();
+        let b = "world".to_string();
+        assert_eq!(a.combine(&b), "helloworld");
+    }
 
     proptest! {
         #[test]

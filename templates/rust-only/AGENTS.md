@@ -5,10 +5,10 @@
 
 ## Base Rules
 
-- **Types as axioms** — encode invariants in the type system
-- **Functions as lemmas** — Hoare triples in doc comments
+- **Types prove invariants** — encode constraints in Newtype / Phantom / Typestate
+- **Functions have contracts** — Hoare triple in every doc comment
 - **No unwrap/expect/panic** without compile-time proof
-- **Property tests** for algebraic structures
+- **Property tests** for algebraic axioms
 - **Standard patterns** — no custom DSLs
 
 ## Rust-Specific Rules
@@ -32,22 +32,14 @@
 - Max 40 lines
 - No nesting > 3 levels
 
-### Error Handling
-
-- `Result<T, Error>` with typed errors
-- `?` operator preferred
-- No `unwrap` outside `#[cfg(test)]`
-
 ### Algebraic Structures
 
 ```rust
 pub trait Semigroup: Clone + PartialEq {
-    /// Axiom: ∀a,b,c. combine(a, combine(b, c)) == combine(combine(a, b), c)
     fn combine(&self, other: &Self) -> Self;
 }
 
 pub trait Monoid: Semigroup {
-    /// Axiom: ∃e. ∀a. combine(e, a) == a && combine(a, e) == a
     fn identity() -> Self;
 }
 ```
@@ -63,7 +55,6 @@ Every `unsafe` block requires `// SAFETY:` proof + Miri check.
 - `#[cfg(test)]` in same file
 - `proptest` for property verification
 - Doc tests for examples
-- `cargo fuzz` for parsers
 
 ### Automation
 
@@ -76,7 +67,10 @@ panic = "deny"
 ```
 
 Run: `cargo test`, `cargo clippy -- -D warnings`, `cargo doc --no-deps`
-For unsafe: `cargo +nightly miri test`
+
+### Mechanized Checks
+
+Use `scripts/check-contracts.py` from kimi-dotfiles to verify contracts are present.
 
 ---
 

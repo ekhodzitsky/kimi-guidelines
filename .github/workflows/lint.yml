@@ -1,4 +1,4 @@
-name: Lint Guidelines
+name: Verify
 
 on:
   push:
@@ -7,40 +7,61 @@ on:
     branches: [ main ]
 
 jobs:
-  markdown:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Check markdown formatting
-        uses: DavidAnson/markdownlint-cli2-action@v15
-        with:
-          globs: '**/*.md'
-
   structure:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify directory structure
+      - name: Check directory structure
         run: |
           test -f AGENTS.md
           test -f README.md
-          test -f INSTALL.md
+          test -f CHANGELOG.md
+          test -f LICENSE
           test -f install.sh
+          test -f scripts/check-contracts.py
           test -d languages/rust
-          test -d languages/swift
           test -d templates/minimal
           test -d templates/rust-only
-          test -d templates/swift-only
           test -d templates/full
-          test -d examples/existing-project
-          test -d skills/examples
+          test -d examples/rust-demo
+          test -f examples/rust-demo/Cargo.toml
 
-      - name: Check install script is executable
-        run: test -x install.sh
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-      - name: Verify templates contain version markers
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run contract checker on demo
+        run: python3 scripts/check-contracts.py examples/rust-demo/src/
+
+      - name: Run contract checker on languages/rust
+        run: python3 scripts/check-contracts.py languages/rust/
+
+  rust-demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+
+      - name: Run cargo test
         run: |
-          grep -r "kimi-dotfiles" templates/
-          grep -r "Version:" templates/
+          cd examples/rust-demo
+          cargo test
+
+      - name: Run cargo clippy
+        run: |
+          cd examples/rust-demo
+          cargo clippy -- -D warnings
+
+      - name: Run cargo doc
+        run: |
+          cd examples/rust-demo
+          cargo doc --no-deps

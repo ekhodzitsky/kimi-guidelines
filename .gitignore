@@ -3,6 +3,8 @@
 Cargo.lock
 **/*.rs.bk
 *.pdb
+*.rlib
+proptest-regressions/
 
 # IDEs
 .idea/

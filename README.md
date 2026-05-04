@@ -1,47 +1,15 @@
 # kimi-dotfiles
 
-Composable mathematical programming guidelines for **Kimi K2.6** (Moonshot AI) and **Rust**.
+Mechanized guidelines for writing correct Rust with **Kimi K2.6**.
 
-We treat code as mathematical proof: every function is a lemma, every module is a theorem, types are axioms.
+We enforce contracts through types, verify them through tests, and check them through automation.
 
-## Philosophy
+## What This Does
 
-```
-Specification → Type-Level Proof → Implementation → Property Verification → Refinement
-```
-
-- **Types as axioms** — encode invariants in the type system (Curry-Howard)
-- **Functions as lemmas** — Hoare triples in doc comments
-- **Properties as theorems** — universal quantification via proptest, not manual examples
-- **Errors as codomain** — `Result` is mathematical result, not exception
-
-## Structure
-
-```
-kimi-dotfiles/
-├── AGENTS.md                    # Base rules (language-agnostic mathematical principles)
-├── FORMALISM.md                 # Concrete tools: Hoare triples, Phantom types, Miri, fuzzing
-├── GLOSSARY.md                  # Mathematical vocabulary
-├── PIPELINE.md                  # Development pipeline
-├── SEVERITY.md                  # Issue classification (axiom violation = CRITICAL)
-├── README.md                    # This file
-├── CHANGELOG.md                 # Version history
-├── LICENSE                      # MIT
-├── INSTALL.md                   # Integration guide
-├── install.sh                   # Interactive installer
-├── .gitignore
-├── .github/workflows/lint.yml   # CI for the repo itself
-├── languages/
-│   └── rust/AGENTS.md           # Full Rust guidelines
-├── templates/
-│   ├── minimal/AGENTS.md        # Base only
-│   ├── rust-only/AGENTS.md      # Base + Rust
-│   └── full/AGENTS.md           # Base + Rust
-├── examples/
-│   ├── existing-project/        # How to merge with existing rules
-│   └── rust-demo/               # Real Cargo project with Monoid, Phantom types, SortedVec
-└── scripts/                     # Build tools (future)
-```
+1. **Types prove invariants** — `Price(u64)` not `f64`, `Quantity<Meters>` not `f64`, `Socket<Connected>` not `bool`
+2. **Functions have contracts** — every `pub fn` has precondition/postcondition in doc comment
+3. **Property tests verify axioms** — associativity, identity, commutativity via `proptest`
+4. **Scripts enforce rules** — `check-contracts.py` greps for missing Hoare triples and forbidden `unwrap()`
 
 ## Quick Start
 
@@ -52,10 +20,11 @@ cd your-rust-project
 bash /path/to/kimi-dotfiles/install.sh
 ```
 
-### Option B: One-liner (non-interactive)
+### Option B: Non-interactive
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/ekhodzitsky/kimi-dotfiles/main/install.sh | bash -s -- --template rust-only --yes
+cd your-rust-project
+bash /path/to/kimi-dotfiles/install.sh --template rust-only --yes
 ```
 
 ### Option C: Manual copy
@@ -65,43 +34,74 @@ cp kimi-dotfiles/templates/rust-only/AGENTS.md your-project/AGENTS.md
 cp kimi-dotfiles/.cargo/config.toml your-project/.cargo/config.toml
 ```
 
-### Option D: Symlink (personal use only)
+## Structure
 
-```bash
-ln -s ~/kimi-dotfiles/languages/rust/AGENTS.md your-project/src/AGENTS.md
+```
+kimi-dotfiles/
+├── AGENTS.md                    # Base principles
+├── FORMALISM.md                 # Concrete patterns: Phantom types, Hoare triples, proptest
+├── GLOSSARY.md                  # Vocabulary: Invariant, Precondition, Monoid, Functor
+├── PIPELINE.md                  # Development process: Spec → Type Proof → Impl → Verify
+├── SEVERITY.md                  # Issue classification
+├── README.md                    # This file
+├── CHANGELOG.md                 # Version history
+├── LICENSE                      # MIT
+├── INSTALL.md                   # Integration guide
+├── install.sh                   # Interactive installer
+├── .gitignore
+├── .cargo/config.toml           # Clippy rules (unwrap = deny, panic = deny)
+├── scripts/
+│   └── check-contracts.py       # Mechanized contract verification
+├── .github/workflows/lint.yml   # CI: cargo test, clippy, contract checker
+├── languages/
+│   └── rust/AGENTS.md           # Full Rust guidelines (350+ lines)
+├── templates/
+│   ├── minimal/AGENTS.md        # Base only (35 lines)
+│   ├── rust-only/AGENTS.md      # Base + Rust summary (85 lines)
+│   └── full/AGENTS.md           # Complete ruleset
+├── examples/
+│   ├── existing-project/        # Merge example for existing AGENTS.md
+│   └── rust-demo/               # Real Cargo project with Monoid, Phantom types, SortedVec
 ```
 
-## Integration with Existing Projects
+## Example: Before vs After
 
-If you already have `AGENTS.md`, copy a template and merge manually, or use `install.sh` which creates a backup.
+**Without guidelines** — Kimi generates:
+```rust
+fn process(amount: f64, tax: f64) -> f64 {
+    amount * (1.0 + tax) // What if amount < 0? What if tax > 1.0?
+}
+```
 
-See `examples/existing-project/AGENTS.md` for merge patterns.
+**With guidelines** — Kimi generates:
+```rust
+/// { price.cents() >= 0 && rate.value() <= 1.0 }
+/// fn calculate(price: Price, rate: TaxRate) -> Price
+/// { ret.cents() == price.cents() + tax_amount }
+pub fn calculate(price: Price, rate: TaxRate) -> Price {
+    let tax = (price.cents() as f64 * rate.value()).round() as u64;
+    Price::from_cents(price.cents() + tax)
+}
+```
+
+## Mechanized Verification
+
+```bash
+# Check that every pub fn has a Hoare triple and no forbidden unwrap()
+python3 scripts/check-contracts.py examples/rust-demo/src/
+# ✅ All contracts satisfied.
+```
+
+CI runs this automatically on every PR.
 
 ## Key Documents
 
 | Document | Purpose |
 |----------|---------|
 | **[FORMALISM.md](FORMALISM.md)** | Concrete patterns: Hoare triples, PhantomData, Typestate, proptest, Miri, fuzzing |
-| **[GLOSSARY.md](GLOSSARY.md)** | Mathematical terms: Lemma, Theorem, Axiom, Invariant, Monad, Homomorphism |
-| **[PIPELINE.md](PIPELINE.md)** | Formal development process with complexity gates |
-| **[SEVERITY.md](SEVERITY.md)** | CRITICAL = axiom violation, MAJOR = proof gap, MINOR = presentation, INFO = suggestion |
-
-## Example: What This Looks Like in Practice
-
-```rust
-/// { !items.is_empty() }
-/// fn average(items: &[f64]) -> f64
-/// { ret.abs_diff_eq(sum(items) / len(items), epsilon) }
-pub fn average(items: &[f64]) -> f64 {
-    debug_assert!(!items.is_empty(), "precondition: non-empty slice");
-    items.iter().sum::<f64>() / items.len() as f64
-}
-```
-
-See `examples/rust-demo/` for a complete Cargo project with:
-- `Monoid` trait with property-tested axioms
-- `Quantity<Meters>` via Phantom types
-- `SortedVec<T>` with compile-time invariant
+| **[GLOSSARY.md](GLOSSARY.md)** | Vocabulary: Lemma, Theorem, Axiom, Invariant, Monad, Homomorphism |
+| **[PIPELINE.md](PIPELINE.md)** | Development process with complexity gates |
+| **[SEVERITY.md](SEVERITY.md)** | CRITICAL = axiom violation, MAJOR = proof gap, MINOR = style, INFO = suggestion |
 
 ## Versioning
 
