@@ -30,7 +30,18 @@ bash /path/to/kimi-dotfiles/install.sh --template rust-only --yes
 bash /path/to/kimi-dotfiles/install.sh --template rust-only --strictness relaxed --yes
 ```
 
-### Option C: Manual copy
+### Option C: Cargo subcommand (recommended)
+
+```bash
+# Install once
+cargo install --git https://github.com/ekhodzitsky/kimi-dotfiles cargo-kimi
+
+# Use in any project
+cargo kimi init --template rust-only --yes
+cargo kimi check
+```
+
+### Option D: Manual copy
 
 ```bash
 cp kimi-dotfiles/templates/rust-only/AGENTS.md your-project/AGENTS.md
@@ -51,6 +62,7 @@ kimi-dotfiles/
 ├── LICENSE                      # MIT
 ├── INSTALL.md                   # Integration guide
 ├── install.sh                   # Interactive installer
+├── cargo-kimi/                  # Cargo subcommand (init, check, verify, upgrade)
 ├── .gitignore
 ├── strictness/
 │   ├── relaxed.toml             # Warnings only — gradual adoption

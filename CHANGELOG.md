@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Real-world example**: `examples/rust-http-client/` — GitHub API client with reqwest, thiserror, typestate
 - **Fuzz target**: `examples/rust-http-client/fuzz/` for response parsing
 - **Doc tests**: 18 executable examples in rust-http-client
+- **`cargo-kimi` CLI**: Cargo subcommand with `init`, `check`, `verify`, `upgrade`
 
 ### Changed
 
