@@ -1,6 +1,6 @@
 # Mathematical Glossary for Code
 
-> Version: 1.0.0 | kimi-dotfiles
+> Version: 1.2.1 | kimi-dotfiles
 >
 > Use these terms exactly. Consistent formal language eliminates ambiguity.
 
@@ -146,7 +146,7 @@ A structure-preserving map between two algebraic structures.
 ## Verification Concepts
 
 ### Property-Based Testing
-Universal quantification via randomized testing. Instead of `assert_eq!(foo(2), 4)`, prove `∀x. foo(foo(x)) == x`.
+Randomized testing of universal properties. Instead of `assert_eq!(foo(2), 4)`, prove `∀x. foo(foo(x)) == x`.
 
 ### Fuzzing
 Randomized input generation targeting edge cases, especially for parsers and deserializers.

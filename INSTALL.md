@@ -25,7 +25,7 @@ Or manually merge:
 
 ```markdown
 <!-- My Project AGENTS.md -->
-<!-- Includes kimi-dotfiles: rust@v1.0.0 -->
+<!-- Includes kimi-dotfiles: rust@v1.2.1 -->
 
 # Project-specific conventions
 - We use PostgreSQL
@@ -34,7 +34,7 @@ Or manually merge:
 ---
 
 ## Rust Module Rules
-<!-- @kimi-dotfiles: rust@v1.0.0 -->
+<!-- @kimi-dotfiles: rust@v1.2.1 -->
 [Copy from languages/rust/AGENTS.md]
 ```
 
@@ -59,12 +59,12 @@ Always pin to a tag:
 
 ```bash
 cd /path/to/kimi-dotfiles
-git checkout v1.0.0
+git checkout v1.2.1
 ```
 
 In your `AGENTS.md`:
 ```markdown
-<!-- kimi-dotfiles: v1.0.0 -->
+<!-- kimi-dotfiles: v1.2.1 -->
 ```
 
 ## Updating

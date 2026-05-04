@@ -1,7 +1,7 @@
 # Project Guidelines
 
 > Generated from kimi-dotfiles/templates/rust-only
-> Includes: base@v1.0.0 + rust@v1.0.0
+> Includes: base@v1.2.1 + rust@v1.2.1
 
 ## Base Rules
 

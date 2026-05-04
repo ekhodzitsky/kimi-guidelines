@@ -1,7 +1,7 @@
 # Project Guidelines
 
 > Generated from kimi-dotfiles/templates/minimal
-> Version: 1.0.0
+> Version: 1.2.1
 
 ## Core Principles
 

@@ -1,7 +1,7 @@
 # Project Guidelines
 
 > Generated from kimi-dotfiles/templates/full
-> Includes: base@v1.0.0 + rust@v1.0.0
+> Includes: base@v1.2.1 + rust@v1.2.1
 
 This is the complete ruleset. For a shorter version, use `templates/rust-only/AGENTS.md`.
 

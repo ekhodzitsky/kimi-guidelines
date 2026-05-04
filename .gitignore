@@ -1,10 +1,14 @@
-# Rust
+# Rust — root and nested projects
 /target
+**/target/
 Cargo.lock
 **/*.rs.bk
 *.pdb
 *.rlib
+
+# Proptest regression files (should be committed for reproducibility, but optional)
 proptest-regressions/
+**/proptest-regressions/
 
 # IDEs
 .idea/

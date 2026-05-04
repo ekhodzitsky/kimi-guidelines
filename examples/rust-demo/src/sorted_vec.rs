@@ -73,15 +73,6 @@ mod tests {
     use super::*;
     use proptest::prelude::*;
 
-    /// Doc test: sorted vec invariant
-    /// ```
-    /// use rust_demo::sorted_vec::SortedVec;
-    /// let mut sv = SortedVec::new();
-    /// sv.insert(3);
-    /// sv.insert(1);
-    /// sv.insert(4);
-    /// assert_eq!(sv.as_slice(), &[1, 3, 4]);
-    /// ```
     #[test]
     fn insert_maintains_order() {
         let mut sv = SortedVec::new();

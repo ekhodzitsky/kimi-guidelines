@@ -45,13 +45,6 @@ mod tests {
     use super::*;
     use proptest::prelude::*;
 
-    /// Doc test: string monoid
-    /// ```
-    /// use rust_demo::algebra::*;
-    /// let a = "hello".to_string();
-    /// let b = "world".to_string();
-    /// assert_eq!(a.combine(&b), "helloworld");
-    /// ```
     #[test]
     fn combine_concatenates() {
         let a = "hello".to_string();

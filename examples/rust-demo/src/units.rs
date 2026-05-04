@@ -84,14 +84,6 @@ mod tests {
     use super::*;
     use proptest::prelude::*;
 
-    /// Doc test: velocity theorem
-    /// ```
-    /// use rust_demo::units::*;
-    /// let d = Quantity::<Meters>::meters(100.0);
-    /// let t = Quantity::<Seconds>::seconds(10.0);
-    /// let v = velocity(d, t);
-    /// assert!((v.value() - 10.0).abs() < f64::EPSILON);
-    /// ```
     #[test]
     fn velocity_computes_correctly() {
         let d = Quantity::<Meters>::meters(100.0);
