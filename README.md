@@ -52,6 +52,9 @@ cargo kimi check
 
 # Place in .kimi/ for automatic Kimi CLI discovery
 cargo kimi init --template rust-only --location .kimi --yes
+
+# Auto-generate property tests for your newtypes
+cargo kimi generate-tests
 ```
 
 ### Option D: Manual copy
@@ -125,6 +128,15 @@ python3 scripts/check-contracts.py examples/rust-demo/src/
 
 # With strictness filtering:
 python3 scripts/check-contracts.py --strictness relaxed examples/rust-demo/src/
+```
+
+### Auto-generate property tests
+
+For newtypes with `Add`/`Sub`/`Mul` impls:
+
+```bash
+cargo kimi generate-tests
+# Creates src/kimi_property_tests.rs with associativity, commutativity, identity tests
 ```
 
 CI runs this automatically on every PR.

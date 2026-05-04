@@ -1,7 +1,7 @@
 # Project Guidelines
 
 > Generated from kimi-dotfiles/templates/minimal
-> Version: 1.3.0
+> Version: 1.4.0
 >
 > <!-- Strictness: standard -->
 
