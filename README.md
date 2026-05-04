@@ -120,10 +120,10 @@ Pin to a tag:
 ```bash
 git clone https://github.com/ekhodzitsky/kimi-dotfiles.git
 cd kimi-dotfiles
-git checkout v1.2.0
+git checkout v1.2.1
 ```
 
 In your project's `AGENTS.md`:
 ```markdown
-<!-- kimi-dotfiles: v1.2.0 -->
+<!-- kimi-dotfiles: v1.2.1 -->
 ```

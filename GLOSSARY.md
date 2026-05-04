@@ -25,7 +25,7 @@ pub struct Price(u64);
 The combination of:
 1. Type system (compiler checks axioms)
 2. Contracts (`debug_assert!` checks preconditions)
-3. Property tests (universal quantification over input space)
+3. Property tests (randomized property testing over input space)
 4. Doc tests (executable examples)
 5. Miri (absence of UB in unsafe)
 6. Fuzzing (stress testing parsers)

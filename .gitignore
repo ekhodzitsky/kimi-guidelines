@@ -6,7 +6,7 @@ Cargo.lock
 *.pdb
 *.rlib
 
-# Proptest regression files (should be committed for reproducibility, but optional)
+# Proptest regression files
 proptest-regressions/
 **/proptest-regressions/
 

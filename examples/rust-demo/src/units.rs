@@ -1,6 +1,6 @@
 //! Theorem: Physical Dimensions via Phantom Types
 //!
-//! Invariant: A Quantity<T> carries a dimension T. Operations on mismatched dimensions are compile-time errors.
+//! Invariant: A `Quantity<T>` carries a dimension `T`. Operations on mismatched dimensions are compile-time errors.
 
 use std::marker::PhantomData;
 
@@ -16,7 +16,7 @@ pub struct Seconds;
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct MetersPerSecond;
 
-/// Axiom: Quantity<T> represents a physical quantity with dimension T
+/// Axiom: `Quantity<T>` represents a physical quantity with dimension `T`
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Quantity<T>(f64, PhantomData<T>);
 

@@ -1,8 +1,8 @@
-//! Theorem: SortedVec<T> — A Vector Maintaining Order Invariant
+//! Theorem: `SortedVec<T>` — A Vector Maintaining Order Invariant
 //!
-//! Invariant: ∀i. 0 <= i < len-1 ==> data[i] <= data[i+1]
+//! Invariant: for all i: `0 <= i < len-1` implies `data[i] <= data[i+1]`
 
-/// Axiom: SortedVec<T> maintains ascending order after every operation
+/// Axiom: `SortedVec<T>` maintains ascending order after every operation
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SortedVec<T: Ord + Clone> {
     data: Vec<T>,

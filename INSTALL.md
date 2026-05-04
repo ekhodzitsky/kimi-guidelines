@@ -72,7 +72,7 @@ In your `AGENTS.md`:
 ```bash
 cd /path/to/kimi-dotfiles
 git fetch origin
-git checkout v1.1.0  # New stable version
+git checkout v1.2.1  # New stable version
 ```
 
 Then re-run `install.sh` in your projects.
