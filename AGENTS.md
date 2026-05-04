@@ -1,6 +1,6 @@
 # Guidelines for Correct Rust with Kimi K2.6
 
-> Version: 1.4.0 | Repository: https://github.com/ekhodzitsky/kimi-dotfiles
+> Version: 1.5.0 | Repository: https://github.com/ekhodzitsky/kimi-dotfiles
 
 ## The 5 Rules
 

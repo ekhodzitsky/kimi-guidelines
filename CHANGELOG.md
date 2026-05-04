@@ -16,7 +16,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`cargo-kimi` CLI**: Cargo subcommand with `init`, `check`, `verify`, `upgrade`
 - **A/B benchmark scorecard**: 10 prompts × 2 groups = +323% quality improvement with guidelines
 - **Rewrite check-contracts.py in Rust**: `cargo kimi check` no longer requires Python
-- **`cargo kimi generate-tests`**: Auto-generates proptest property tests for newtypes with arithmetic impls (Add, Sub, Mul)
+- **`cargo kimi generate-tests`**: Auto-generates proptest property tests for newtypes with arithmetic impls (Add, Sub, Mul), Ord, Eq, Clone
+- **Workspace support**: `cargo kimi check` scans all workspace crates
+- **Published on crates.io**: `cargo install cargo-kimi`
+- **GitHub Action**: `.github/actions/kimi-dotfiles/action.yml` for reusable CI
+- **Pre-commit hook**: `pre-commit.example.yaml` for local enforcement
 
 ### Changed
 

@@ -1,0 +1,12 @@
+# Example pre-commit configuration for kimi-dotfiles
+# Save as .pre-commit-config.yaml in your project root
+
+repos:
+  - repo: local
+    hooks:
+      - id: kimi-dotfiles-check
+        name: kimi-dotfiles check
+        entry: cargo kimi check --strictness standard
+        language: system
+        pass_filenames: false
+        always_run: true

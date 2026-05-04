@@ -44,7 +44,7 @@ bash /path/to/kimi-dotfiles/install.sh --template rust-only --strictness relaxed
 
 ```bash
 # Install once
-cargo install --git https://github.com/ekhodzitsky/kimi-dotfiles cargo-kimi
+cargo install cargo-kimi
 
 # Use in any project
 cargo kimi init --template rust-only --yes
@@ -132,11 +132,23 @@ python3 scripts/check-contracts.py --strictness relaxed examples/rust-demo/src/
 
 ### Auto-generate property tests
 
-For newtypes with `Add`/`Sub`/`Mul` impls:
+For newtypes with `Add`/`Sub`/`Mul`/`Ord`/`Eq`/`Clone`:
 
 ```bash
 cargo kimi generate-tests
-# Creates src/kimi_property_tests.rs with associativity, commutativity, identity tests
+# Creates src/kimi_property_tests.rs with associativity, commutativity, identity, transitivity, reflexivity tests
+```
+
+### Pre-commit hook
+
+Copy `pre-commit.example.yaml` to `.pre-commit-config.yaml` to block commits without contracts.
+
+### GitHub Action
+
+```yaml
+- uses: ekhodzitsky/kimi-dotfiles/.github/actions/kimi-dotfiles@main
+  with:
+    strictness: standard
 ```
 
 CI runs this automatically on every PR.

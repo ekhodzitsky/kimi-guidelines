@@ -19,7 +19,6 @@ jobs:
           test -f CHANGELOG.md
           test -f LICENSE
           test -f install.sh
-          test -f scripts/check-contracts.py
           test -d languages/rust
           test -d templates/minimal
           test -d templates/rust-only
@@ -36,16 +35,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
 
-      - name: Run contract checker on demo
-        run: python3 scripts/check-contracts.py examples/rust-demo/src/
+      - name: Install cargo-kimi
+        run: cargo install cargo-kimi
 
-      - name: Run contract checker on languages/rust
-        run: python3 scripts/check-contracts.py languages/rust/
+      - name: Run cargo-kimi check on rust-demo
+        run: |
+          cd examples/rust-demo
+          cargo kimi check --strictness standard
+
+      - name: Run cargo-kimi check on rust-http-client
+        run: |
+          cd examples/rust-http-client
+          cargo kimi check --strictness standard
 
   rust-demo:
     runs-on: ubuntu-latest
