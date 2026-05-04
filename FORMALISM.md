@@ -1,8 +1,8 @@
 # Formal Methods in Rust: Practical Toolkit
 
-> Version: 1.0.0 | kimi-dotfiles
+> Version: 1.2.0 | kimi-dotfiles
 >
-> This document lists concrete tools, crates, and patterns for implementing mathematical rigor in Rust. Not theory — practice.
+> Concrete tools, crates, and patterns for implementing rigorous Rust code.
 
 ## 1. Hoare Logic: Contracts in Code
 
@@ -69,7 +69,7 @@ impl Natural {
     pub fn new(n: u32) -> Self {
         Self(n)
     }
-    
+
     /// { n >= 0 }
     /// fn from_i32(n: i32) -> Option<Natural>
     /// { Some(_) ==> n >= 0, None ==> n < 0 }
@@ -93,7 +93,7 @@ pub struct Quantity<T>(f64, PhantomData<T>);
 
 impl Quantity<Meter> {
     pub fn meters(v: f64) -> Self { Self(v, PhantomData) }
-    
+
     /// { true }
     /// fn add(self, other: Quantity<Meter>) -> Quantity<Meter>
     /// { ret.value == self.value + other.value }
@@ -106,8 +106,8 @@ impl Quantity<Meter> {
 /// fn velocity(distance: Quantity<Meter>, time: Quantity<Second>) -> Quantity<(Meter, Second)>
 /// { ret.value == distance.value / time.value }
 pub fn velocity(
-    distance: Quantity<Meter>, 
-    time: Quantity<Second>
+    distance: Quantity<Meter>,
+    time: Quantity<Second>,
 ) -> Quantity<(Meter, Second)> {
     Quantity(distance.0 / time.0, PhantomData)
 }
@@ -159,7 +159,7 @@ impl Session<Authenticated> {
 
 ## 3. Algebraic Structures as Traits
 
-Mathematical structures are not metaphors — they are contracts with axioms.
+Mathematical structures are contracts with axioms.
 
 ```rust
 /// Axiom: assoc(a, b, c) == true for all a, b, c
@@ -186,9 +186,9 @@ These axioms MUST be verified via property-based tests (see §4).
 
 ---
 
-## 4. Property-Based Testing: Universal Quantification
+## 4. Property-Based Testing: Randomized Verification
 
-Unit tests check examples. Property tests check theorems.
+Unit tests check examples. Property tests check invariants across random inputs.
 
 ### Obligatory Crates
 
@@ -265,9 +265,67 @@ pub fn head<T>(xs: &[T]) -> Option<&T> {
 
 ---
 
-## 5. Abstract Interpretation & Static Analysis
+## 5. Formal Verification: Kani Model Checker
 
-Use the compiler and additional tools as theorem provers.
+For critical code, use [Kani](https://github.com/model-checking/kani) — a model checker for Rust that verifies properties for **all possible inputs** (not just random samples like proptest).
+
+### Installation
+
+```bash
+cargo install --locked kani-verifier
+cargo kani setup
+```
+
+### Proof Harness
+
+```rust
+#[cfg(kani)]
+mod proofs {
+    use crate::sorted_vec::SortedVec;
+
+    /// Proof: Inserting any element maintains sorted invariant
+    /// for all possible inputs in range [0, 100].
+    #[kani::proof]
+    fn insert_maintains_sorted() {
+        let mut sv = SortedVec::new();
+        let item: i32 = kani::any();
+        kani::assume(item >= 0 && item <= 100);
+
+        sv.insert(item);
+
+        let slice = sv.as_slice();
+        for i in 1..slice.len() {
+            assert!(slice[i-1] <= slice[i]);
+        }
+    }
+}
+```
+
+### Running Proofs
+
+```bash
+cd your-project
+cargo kani
+```
+
+Kani exhaustively checks all execution paths within bounded input ranges. Unlike proptest (randomized sampling), Kani provides **mathematical guarantees** for the bounded domain.
+
+**When to use:**
+- Critical invariants that must hold for all inputs
+- State machine transitions
+- Parser correctness
+- Security-sensitive functions
+
+**When NOT to use:**
+- IO-bound code (Kani models execution, not network)
+- Large unbounded loops (state explosion)
+- Code with heavy external dependencies
+
+---
+
+## 6. Abstract Interpretation & Static Analysis
+
+Use the compiler and additional tools as analyzers.
 
 ### Compiler as Prover
 
@@ -304,7 +362,7 @@ If the compiler cannot prove the function never panics, it will fail to compile.
 
 ---
 
-## 6. Fuzzing: Stress Testing Invariants
+## 7. Fuzzing: Stress Testing Invariants
 
 ```toml
 [dev-dependencies]
@@ -323,7 +381,7 @@ fuzz_target!(|data: &[u8]| {
 
 ---
 
-## 7. Specification Files
+## 8. Specification Files
 
 For complex modules, write a separate `.spec.md`:
 
@@ -354,7 +412,7 @@ For complex modules, write a separate `.spec.md`:
 
 ---
 
-## 8. Refinement Types (Lightweight)
+## 9. Refinement Types (Lightweight)
 
 Rust does not have full dependent types, but we can approximate:
 
@@ -371,7 +429,7 @@ impl<const N: i32> GreaterThan<N> {
             None
         }
     }
-    
+
     pub fn get(&self) -> i32 { self.0 }
 }
 
@@ -381,7 +439,7 @@ let x: GreaterThan<0> = GreaterThan::new(5).unwrap();
 
 ---
 
-## 9. Checklist for Every Module
+## 10. Checklist for Every Module
 
 - [ ] Every public function has Hoare triple in doc comment
 - [ ] Every type has documented invariant
@@ -391,4 +449,5 @@ let x: GreaterThan<0> = GreaterThan::new(5).unwrap();
 - [ ] No `unwrap`/`expect`/`panic!` without type-level proof of safety
 - [ ] `unsafe` blocks have `// SAFETY:` proof + Miri check
 - [ ] Fuzz targets for parsers/deserializers
+- [ ] Kani proofs for critical invariants (optional but recommended)
 - [ ] `.spec.md` for modules with >3 public types

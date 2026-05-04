@@ -65,3 +65,21 @@ jobs:
         run: |
           cd examples/rust-demo
           cargo doc --no-deps
+
+  kani:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+
+      - name: Install Kani
+        run: |
+          cargo install --locked kani-verifier
+          cargo kani setup
+
+      - name: Run Kani proofs
+        run: |
+          cd examples/rust-demo
+          cargo kani

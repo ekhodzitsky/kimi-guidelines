@@ -1,15 +1,15 @@
 # kimi-dotfiles
 
-Mechanized guidelines for writing correct Rust with **Kimi K2.6**.
+Guidelines and mechanized checks for writing correct Rust with **Kimi K2.6**.
 
-We enforce contracts through types, verify them through tests, and check them through automation.
+We use types to prevent bugs, contracts to document intent, property tests to verify behavior, and scripts to enforce rules automatically.
 
 ## What This Does
 
-1. **Types prove invariants** — `Price(u64)` not `f64`, `Quantity<Meters>` not `f64`, `Socket<Connected>` not `bool`
+1. **Types prove invariants** — `Price(u64)` not `f64`, `Quantity<Meters>` not `f64`
 2. **Functions have contracts** — every `pub fn` has precondition/postcondition in doc comment
-3. **Property tests verify axioms** — associativity, identity, commutativity via `proptest`
-4. **Scripts enforce rules** — `check-contracts.py` greps for missing Hoare triples and forbidden `unwrap()`
+3. **Property tests verify behavior** — associativity, identity, commutativity via `proptest`
+4. **Scripts enforce rules** — `check-contracts.py` verifies Hoare triples and forbids `unwrap()`
 
 ## Quick Start
 
@@ -38,10 +38,10 @@ cp kimi-dotfiles/.cargo/config.toml your-project/.cargo/config.toml
 
 ```
 kimi-dotfiles/
-├── AGENTS.md                    # Base principles
-├── FORMALISM.md                 # Concrete patterns: Phantom types, Hoare triples, proptest
+├── AGENTS.md                    # The 5 rules (short, self-contained)
+├── FORMALISM.md                 # Patterns: Phantom types, Hoare triples, proptest, Kani
 ├── GLOSSARY.md                  # Vocabulary: Invariant, Precondition, Monoid, Functor
-├── PIPELINE.md                  # Development process: Spec → Type Proof → Impl → Verify
+├── PIPELINE.md                  # Development process: Spec → Type Design → Implement → Verify
 ├── SEVERITY.md                  # Issue classification
 ├── README.md                    # This file
 ├── CHANGELOG.md                 # Version history
@@ -87,18 +87,29 @@ pub fn calculate(price: Price, rate: TaxRate) -> Price {
 ## Mechanized Verification
 
 ```bash
-# Check that every pub fn has a Hoare triple and no forbidden unwrap()
+# Check that every pub fn has a contract and no forbidden unwrap()
 python3 scripts/check-contracts.py examples/rust-demo/src/
 # ✅ All contracts satisfied.
 ```
 
 CI runs this automatically on every PR.
 
+## Formal Verification (Optional)
+
+For critical code, use [Kani](https://github.com/model-checking/kani) — a model checker for Rust:
+
+```bash
+cargo install --locked kani-verifier
+cargo kani
+```
+
+See `examples/rust-demo/` for proof harnesses.
+
 ## Key Documents
 
 | Document | Purpose |
 |----------|---------|
-| **[FORMALISM.md](FORMALISM.md)** | Concrete patterns: Hoare triples, PhantomData, Typestate, proptest, Miri, fuzzing |
+| **[FORMALISM.md](FORMALISM.md)** | Concrete patterns: Hoare triples, PhantomData, Typestate, proptest, Miri, Kani, fuzzing |
 | **[GLOSSARY.md](GLOSSARY.md)** | Vocabulary: Lemma, Theorem, Axiom, Invariant, Monad, Homomorphism |
 | **[PIPELINE.md](PIPELINE.md)** | Development process with complexity gates |
 | **[SEVERITY.md](SEVERITY.md)** | CRITICAL = axiom violation, MAJOR = proof gap, MINOR = style, INFO = suggestion |
@@ -109,10 +120,10 @@ Pin to a tag:
 ```bash
 git clone https://github.com/ekhodzitsky/kimi-dotfiles.git
 cd kimi-dotfiles
-git checkout v1.0.0
+git checkout v1.2.0
 ```
 
 In your project's `AGENTS.md`:
 ```markdown
-<!-- kimi-dotfiles: v1.0.0 -->
+<!-- kimi-dotfiles: v1.2.0 -->
 ```

@@ -9,3 +9,6 @@
 pub mod algebra;
 pub mod units;
 pub mod sorted_vec;
+
+#[cfg(kani)]
+pub mod kani_proofs;
