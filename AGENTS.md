@@ -1,6 +1,16 @@
 # Global Instructions for Kimi K2.6
 
-> Version: 1.0.0 | Repository: kimi-dotfiles
+> Version: 1.0.0 | Repository: https://github.com/evkhodzitsky/kimi-dotfiles
+
+## Reference Documents
+
+These documents form the formal foundation. Read them before generating or reviewing code:
+
+- **[GLOSSARY.md](GLOSSARY.md)** — Formal language for specifications (Invariant, Precondition, Postcondition, Typestate, Newtype, Depth, Seam)
+- **[PIPELINE.md](PIPELINE.md)** — Development pipeline: Specification → Proof Sketch → Implementation → Verification → Refinement
+- **[SEVERITY.md](SEVERITY.md)** — Issue classification: CRITICAL / MAJOR / MINOR / INFO
+
+---
 
 ## 0. Meta Principle: Code Is Data for the Model
 
@@ -132,6 +142,18 @@ let n = calc(&cfg, &usr);
 - [ ] Nesting depth ≤ 3 levels
 - [ ] Linters pass without warnings
 - [ ] Tests cover happy path and errors
+
+---
+
+## 10. Formal Pipeline
+
+For non-trivial tasks (MEDIUM+ complexity), follow the pipeline from [PIPELINE.md](PIPELINE.md):
+
+```
+Specification → Proof Sketch → Implementation → Verification → Refinement
+```
+
+Trigger explicitly or let Kimi auto-detect complexity.
 
 ---
 
