@@ -1,0 +1,46 @@
+name: Lint Guidelines
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  markdown:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check markdown formatting
+        uses: DavidAnson/markdownlint-cli2-action@v15
+        with:
+          globs: '**/*.md'
+
+  structure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify directory structure
+        run: |
+          test -f AGENTS.md
+          test -f README.md
+          test -f INSTALL.md
+          test -f install.sh
+          test -d languages/rust
+          test -d languages/swift
+          test -d templates/minimal
+          test -d templates/rust-only
+          test -d templates/swift-only
+          test -d templates/full
+          test -d examples/existing-project
+          test -d skills/examples
+
+      - name: Check install script is executable
+        run: test -x install.sh
+
+      - name: Verify templates contain version markers
+        run: |
+          grep -r "kimi-dotfiles" templates/
+          grep -r "Version:" templates/
