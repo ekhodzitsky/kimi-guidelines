@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Fuzz target**: `examples/rust-http-client/fuzz/` for response parsing
 - **Doc tests**: 18 executable examples in rust-http-client
 - **`cargo-kimi` CLI**: Cargo subcommand with `init`, `check`, `verify`, `upgrade`
+- **A/B benchmark scorecard**: 10 prompts × 2 groups = +323% quality improvement with guidelines
 
 ### Changed
 

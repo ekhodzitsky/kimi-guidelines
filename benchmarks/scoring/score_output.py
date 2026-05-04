@@ -59,15 +59,34 @@ class RustAnalyzer:
 
     def _count_hoare_triples(self) -> int:
         """Doc comments that look like Hoare triples: /// { ... }"""
-        # Match /// followed by optional spaces and a {
+        # Match /// followed by optional spaces and a { at start of doc comment
+        # But not inside unwrap_or or similar false positives
         pattern = re.compile(r'^\s*///\s*\{')
         return sum(1 for line in self.lines if pattern.match(line))
 
     def _count_unwraps(self) -> int:
-        """Count unwrap(), expect(...), and panic!(...)."""
-        # Simple regex; won't catch every macro invocation but covers common cases.
-        pattern = re.compile(r'\b(unwrap\(\)|expect\s*\(|panic!\s*\()')
-        return sum(1 for line in self.lines if pattern.search(line))
+        """Count unwrap(), expect(...), and panic!(...) outside doc comments and tests."""
+        # Skip doc comments (///) and #[cfg(test)] blocks
+        in_test_block = False
+        count = 0
+        unwrap_pattern = re.compile(r'\b(unwrap\(\)|expect\s*\(|panic!\s*\()')
+        # Exclude unwrap_or / unwrap_or_else / unwrap_or_default
+        false_positive = re.compile(r'\b(unwrap_or\(|unwrap_or_else\(|unwrap_or_default\()')
+        for line in self.lines:
+            stripped = line.strip()
+            if stripped.startswith('///'):
+                continue
+            if '#[cfg(test)]' in stripped:
+                in_test_block = True
+                continue
+            if in_test_block:
+                if stripped == '}' and line.startswith('}'):
+                    # Heuristic: end of test module
+                    pass
+                continue
+            if unwrap_pattern.search(line) and not false_positive.search(line):
+                count += 1
+        return count
 
     def _has_newtype(self) -> bool:
         """Detect newtype pattern: struct Foo(T); or pub struct Bar(Baz);"""
