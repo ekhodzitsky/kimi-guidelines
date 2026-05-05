@@ -71,6 +71,8 @@ Run: `cargo test`, `cargo clippy -- -D warnings`, `cargo doc --no-deps`
 
 Use `cargo kimi check` to verify contracts are present.
 
+Use `cargo kimi verify` to machine-check contracts with Kani (optional but recommended for critical functions).
+
 ---
 
 ## Project-Specific Rules

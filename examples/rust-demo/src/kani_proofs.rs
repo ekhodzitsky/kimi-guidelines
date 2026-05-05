@@ -3,12 +3,15 @@
 //! Install Kani: `cargo install --locked kani-verifier`
 //! Run proofs: `cargo kani`
 //!
-//! These proofs verify that SortedVec maintains its invariant
-//! for all possible inputs within bounded ranges.
+//! These proofs verify that Hoare triples in AGENTS.md are
+//! machine-checkable, not just documentation.
 
 #[cfg(kani)]
 mod proofs {
     use crate::sorted_vec::SortedVec;
+    use crate::units::{add_distances, velocity, Meters, Quantity, Seconds};
+
+    // ── SortedVec proofs ───────────────────────────────────────────
 
     /// Proof: Inserting any single element into an empty SortedVec
     /// maintains the sorted invariant.
@@ -59,5 +62,63 @@ mod proofs {
         assert!(slice.len() == 3);
         assert!(slice[0] <= slice[1]);
         assert!(slice[1] <= slice[2]);
+    }
+
+    /// Proof: After insert, contains returns true for the inserted item.
+    #[kani::proof]
+    fn contains_after_insert() {
+        let mut sv = SortedVec::new();
+        let item: i32 = kani::any();
+        kani::assume(item >= 0 && item <= 100);
+
+        sv.insert(item);
+
+        assert!(sv.contains(&item));
+    }
+
+    /// Proof: Length increases by exactly 1 after insert.
+    #[kani::proof]
+    fn len_increases_after_insert() {
+        let mut sv = SortedVec::new();
+        let item: i32 = kani::any();
+        kani::assume(item >= 0 && item <= 100);
+
+        let old_len = sv.len();
+        sv.insert(item);
+
+        assert!(sv.len() == old_len + 1);
+    }
+
+    // ── Units proofs ───────────────────────────────────────────────
+
+    /// Proof: velocity computes dist / time when time is non-zero.
+    /// { time.0 != 0.0 } velocity(dist, time) { ret.0 == dist.0 / time.0 }
+    #[kani::proof]
+    fn velocity_computes_correctly() {
+        let dist = Quantity::<Meters>::meters(kani::any());
+        let time = Quantity::<Seconds>::seconds(kani::any());
+        kani::assume(time.value() != 0.0);
+        kani::assume(dist.value() >= 0.0 && dist.value() <= 1000.0);
+        kani::assume(time.value() > 0.0 && time.value() <= 100.0);
+
+        let v = velocity(dist, time);
+
+        let expected = dist.value() / time.value();
+        assert!((v.value() - expected).abs() < f64::EPSILON * 10.0);
+    }
+
+    /// Proof: add_distances is commutative for bounded values.
+    /// { true } add_distances(a, b) { ret == add_distances(b, a) }
+    #[kani::proof]
+    fn add_distances_commutative() {
+        let a = Quantity::<Meters>::meters(kani::any());
+        let b = Quantity::<Meters>::meters(kani::any());
+        kani::assume(a.value() >= 0.0 && a.value() <= 1000.0);
+        kani::assume(b.value() >= 0.0 && b.value() <= 1000.0);
+
+        let ab = add_distances(a, b);
+        let ba = add_distances(b, a);
+
+        assert!((ab.value() - ba.value()).abs() < f64::EPSILON * 10.0);
     }
 }

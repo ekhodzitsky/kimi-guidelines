@@ -91,6 +91,30 @@ Use `cargo kimi check` to verify:
 - No `unwrap`/`expect`/`panic!` in non-test code
 - Every `unsafe` has `// SAFETY:` comment
 
+### Formal Verification
+
+Hoare triples are not just documentation — they are machine-checked with Kani.
+
+Add a `kani_proofs.rs` module to your crate:
+
+```rust
+#[cfg(kani)]
+mod proofs {
+    use crate::your_module::*;
+
+    /// Proof: precondition holds ⇒ postcondition holds
+    #[kani::proof]
+    fn your_function_honors_contract() {
+        let input = kani::any();
+        kani::assume(precondition(input));
+        let result = your_function(input);
+        assert!(postcondition(result));
+    }
+}
+```
+
+Run: `cargo kimi verify` (installs Kani if needed, then runs all proofs)
+
 ---
 
 ## Project-Specific Rules

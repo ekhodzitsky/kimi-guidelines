@@ -41,7 +41,20 @@ pub fn average(items: &[f64]) -> f64 {
 }
 ```
 
-Patterns: [FORMALISM.md](FORMALISM.md) §1 (Hoare triples, debug_assert!)
+Contracts are machine-checked with Kani. Write a `#[kani::proof]` harness for every non-trivial `pub fn`:
+
+```rust
+#[cfg(kani)]
+#[kani::proof]
+fn average_non_empty_computes_mean() {
+    let items: Vec<f64> = vec![kani::any(); 3];
+    kani::assume(!items.is_empty());
+    let result = average(&items);
+    assert_eq!(result, items.iter().sum::<f64>() / items.len() as f64);
+}
+```
+
+Patterns: [FORMALISM.md](FORMALISM.md) §1 (Hoare triples, debug_assert!, Kani)
 
 ### 3. No unwrap/expect/panic Without Proof
 
@@ -82,6 +95,9 @@ Run mechanized verification before every commit:
 ```bash
 # Check contracts, unwrap/expect/panic, unsafe SAFETY comments
 cargo kimi check
+
+# Machine-check Hoare triples with bounded model checking
+cargo kimi verify
 
 # Full verification
 cargo test

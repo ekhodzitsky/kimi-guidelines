@@ -10,6 +10,9 @@ pub mod client;
 pub mod error;
 pub mod types;
 
+#[cfg(kani)]
+pub mod kani_proofs;
+
 pub use client::{Authenticated, GitHubClient, Unauthenticated};
 pub use error::Error;
 pub use types::{
