@@ -60,4 +60,4 @@ Each `.rs` file is scored 0-100 across 7 criteria:
 | Function length | 10 | Average function length ≤ 40 lines |
 | Result handling | 10 | Returns `Result` for fallible operations |
 
-Tool: `benchmarks/scoring/score_output.py`
+Tool: `cargo kimi check`

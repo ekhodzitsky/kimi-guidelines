@@ -69,7 +69,7 @@ Run: `cargo test`, `cargo clippy -- -D warnings`, `cargo doc --no-deps`
 
 ### Mechanized Checks
 
-Use `scripts/check-contracts.py` from kimi-dotfiles to verify contracts are present.
+Use `cargo kimi check` to verify contracts are present.
 
 ---
 

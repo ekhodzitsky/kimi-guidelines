@@ -86,7 +86,7 @@ For unsafe: `cargo +nightly miri test`
 
 ### Mechanized Checks
 
-Use `scripts/check-contracts.py` from kimi-dotfiles to verify:
+Use `cargo kimi check` to verify:
 - Every `pub fn` has Hoare triple marker `/// {`
 - No `unwrap`/`expect`/`panic!` in non-test code
 - Every `unsafe` has `// SAFETY:` comment

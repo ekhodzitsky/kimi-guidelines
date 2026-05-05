@@ -37,7 +37,6 @@ kimi-guidelines/
 ├── languages/                # Language-specific rule sets
 │   ├── rust/
 │   └── python/
-├── scripts/                  # Helper scripts
 ├── benchmarks/               # Prompt benchmarks and scoring rubrics
 ├── skills/                   # Kimi CLI skills
 └── .github/

@@ -58,7 +58,7 @@ let port: NonZeroU16 = env::var("PORT")
     .map_err(Error::InvalidPort)?;
 ```
 
-Enforced by: `scripts/check-contracts.py` + clippy `unwrap_used = "deny"`
+Enforced by: `cargo kimi check` + clippy `unwrap_used = "deny"
 
 ### 4. Verify with Property Tests
 
@@ -80,8 +80,8 @@ Patterns: [FORMALISM.md](FORMALISM.md) §4 (proptest, fuzzing)
 Run mechanized verification before every commit:
 
 ```bash
-# Check that every pub fn has a contract and no forbidden unwrap()
-python3 scripts/check-contracts.py src/
+# Check contracts, unwrap/expect/panic, unsafe SAFETY comments
+cargo kimi check
 
 # Full verification
 cargo test

@@ -7,7 +7,6 @@ This directory contains an A/B benchmarking framework to measure whether code ge
 ```
 benchmarks/
 ├── prompts/          # 10 realistic Rust coding prompts
-├── scoring/          # `score_output.py` — evaluates .rs files
 ├── .gitignore        # Ignores generated artifacts
 └── README.md         # This file
 ```
@@ -31,47 +30,16 @@ Each prompt in `prompts/` is a Markdown file describing a self-contained coding 
 
 ## Scoring
 
-`scoring/score_output.py` analyzes any `.rs` file and produces a JSON report.
+Use `cargo kimi check` (from the [`cargo-kimi`](https://github.com/ekhodzitsky/cargo-kimi) CLI) to evaluate generated `.rs` files. It produces a JSON report with a 0–100 quality score based on Hoare triples, unwrap/expect/panic usage, unsafe blocks, SAFETY comments, and more.
 
 ### Usage
 
 ```bash
 # Score a single file
-python benchmarks/scoring/score_output.py path/to/output.rs
+cargo kimi check --file path/to/output.rs
 
-# Score a file and save the report
-python benchmarks/scoring/score_output.py path/to/output.rs --output report.json
-```
-
-### Scoring Criteria (0-100)
-
-| Criterion | Max Points | Description |
-|-----------|------------|-------------|
-| **Hoare triples** | 30 | `/// {` doc comments (up to 3 counted) |
-| **No unwraps** | 20 | Penalty of 5 pts per `unwrap()` / `expect()` / `panic!()` |
-| **Newtype** | 10 | Uses tuple struct newtype pattern |
-| **PhantomData** | 10 | Uses `PhantomData` for lifetime/type safety |
-| **Typestate** | 10 | Uses marker structs + generics for typestate pattern |
-| **Function length** | 10 | Average function length ≤ 40 lines |
-| **Result handling** | 10 | Returns `Result` for fallible operations |
-
-### Example Output
-
-```json
-{
-  "file": "output.rs",
-  "score": 78,
-  "criteria": {
-    "hoare_triples": 3,
-    "unwrap_count": 1,
-    "newtype_used": true,
-    "phantomdata_used": false,
-    "typestate_used": true,
-    "avg_function_length": 25,
-    "result_handling": true,
-    "option_handling": true
-  }
-}
+# Score a whole directory
+cargo kimi check path/to/project/
 ```
 
 ## Running an A/B Test
@@ -89,11 +57,11 @@ python benchmarks/scoring/score_output.py path/to/output.rs --output report.json
    mkdir -p benchmarks/results/control benchmarks/results/treatment
    
    for f in benchmarks/results/control/*.rs; do
-     python benchmarks/scoring/score_output.py "$f" --output "${f%.rs}.json"
+     cargo kimi check --file "$f"
    done
    
    for f in benchmarks/results/treatment/*.rs; do
-     python benchmarks/scoring/score_output.py "$f" --output "${f%.rs}.json"
+     cargo kimi check --file "$f"
    done
    ```
 
