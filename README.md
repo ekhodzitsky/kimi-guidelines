@@ -26,13 +26,15 @@ kimi-guidelines/
 │   ├── minimal/
 │   ├── rust-only/
 │   ├── full/
-│   └── modular/
+│   ├── modular/
+│   └── python/
 ├── strictness/               # Clippy configs: relaxed, standard, strict
 ├── examples/                 # Example projects following the guidelines
 │   ├── rust-demo/
 │   └── rust-http-client/
 ├── languages/                # Language-specific rule sets
-│   └── rust/
+│   ├── rust/
+│   └── python/
 ├── scripts/                  # Helper scripts
 ├── benchmarks/               # Prompt benchmarks and scoring rubrics
 ├── skills/                   # Kimi CLI skills
@@ -43,7 +45,9 @@ kimi-guidelines/
 
 ---
 
-## 30-Second Demo (Rust)
+## Quick Start
+
+### Rust
 
 ```bash
 # 1. Install the enforcer
@@ -63,6 +67,25 @@ cargo kimi trend --days 30
 # → 2026-05-01  ████████░░ 45/100
 # → 2026-05-04  █████████░ 47/100
 ```
+
+### Python
+
+```bash
+# 1. Copy the Python guidelines
+cp kimi-guidelines/templates/python/AGENTS.md your-project/AGENTS.md
+
+# 2. Install tools
+pip install mypy ruff black hypothesis pydantic pip-audit
+
+# 3. Run checks
+ruff check .
+mypy --strict .
+pytest
+pip-audit
+```
+
+> **Note:** `cargo-kimi` now lives in its own repository:  
+> https://github.com/ekhodzitsky/cargo-kimi
 
 ---
 
@@ -99,7 +122,7 @@ We do **not** claim mathematical proof. We claim:
 
 ---
 
-## Quick Start
+## Installation Options
 
 ### Option A: Cargo subcommand (Rust, recommended)
 
@@ -116,9 +139,6 @@ cargo kimi init --template rust-only --location .kimi --yes
 # Run checks
 cargo kimi check
 ```
-
-> **Note:** `cargo-kimi` now lives in its own repository:  
-> https://github.com/ekhodzitsky/cargo-kimi
 
 ### Option B: Interactive installer
 
@@ -203,7 +223,7 @@ Choose with `install.sh --strictness {relaxed|standard|strict}`. Default is `sta
 ### GitHub Action
 
 ```yaml
-- uses: ekhodzitsky/kimi-guidelines/.github/actions/cargo-kimi@main
+- uses: ekhodzitsky/cargo-kimi/.github/actions/cargo-kimi@main
   with:
     strictness: standard
 ```
@@ -237,11 +257,11 @@ Copy `pre-commit.example.yaml` to `.pre-commit-config.yaml` to block commits wit
 - [x] SARIF output for GitHub Advanced Security
 - [x] `cargo kimi watch` for continuous checking
 - [x] Standalone `cargo-kimi` repository
+- [x] Python agent guidelines
 
 ### Planned
 - [ ] IDE extension (real-time score in editor)
 - [ ] Custom rule DSL
-- [ ] Python agent guidelines (`py-kimi`?)
 - [ ] TypeScript agent guidelines (`ts-kimi`?)
 - [ ] Go agent guidelines (`go-kimi`?)
 
@@ -249,7 +269,14 @@ Copy `pre-commit.example.yaml` to `.pre-commit-config.yaml` to block commits wit
 
 ## Contributing
 
-PRs welcome. Open an issue first if the change is larger than a typo fix.
+PRs welcome. Areas where help is especially appreciated:
+
+- New language guidelines (TypeScript, Go, Zig)
+- Additional `templates/` for frameworks (Axum, Actix, Django, FastAPI)
+- Benchmarks and prompt engineering improvements
+- Documentation translations
+
+Open an issue first if the change is larger than a typo fix.
 
 ## Versioning
 
