@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Added
+
+- **LSP server**: `cargo kimi lsp` — real-time diagnostics, code actions (Hoare triple stub, SAFETY comment insertion), hover info with score and issue count
+- **MCP server**: `cargo kimi mcp` — Model Context Protocol bridge for IDE integration
+- **Template restructuring**: Split into `templates/rust/{minimal,rust-only,full}/` and `templates/python/` for multi-language support
+- **Shellcheck CI**: `install.sh` is now linted with shellcheck in `.github/workflows/lint.yml`
+- **Auto-publish pipeline**: Release workflow includes `publish-crates-io` job (requires `CARGO_REGISTRY_TOKEN` secret)
+- **Security hardening**: Path traversal protection in `cargo-kimi`, full secrets audit of both repositories
+
+### Changed
+
+- **Kani workflow extracted**: Moved from inline in `lint.yml` to standalone `.github/workflows/kani.yml` (weekly cron + manual dispatch)
+- **deny.toml v2**: Updated to `cargo-deny` v0.19 format, added `MPL-2.0`, `CC0-1.0`, `Unicode-3.0` licenses
+- **README rewrite**: Added TOC, command reference table, scoring system explanation, LSP section, FAQ
+- **CI hardening**: Fixed SHA-pinned `dtolnay/rust-toolchain` action and added required `toolchain: stable` input everywhere
+
+### Removed
+
+- **Legacy Python scripts**: `scripts/check-contracts.py` and `benchmarks/scoring/score_output.py` — superseded by native `cargo kimi check`
+- **Stale artifacts**: `.cargo/config.toml` from repo root, `example-kimi-check.yml`, `pre-commit.example.yaml`, generated build artifacts in `examples/**/target/`
+
 ## [1.3.0] - 2026-05-04
 
 ### Added
