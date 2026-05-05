@@ -1,7 +1,6 @@
 # Rust — root and nested projects
 /target
 **/target/
-Cargo.lock
 **/*.rs.bk
 *.pdb
 *.rlib
