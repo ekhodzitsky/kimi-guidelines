@@ -1,0 +1,26 @@
+name: Kimi Contract Check
+
+on:
+  pull_request:
+    paths:
+      - '**.rs'
+      - 'Cargo.toml'
+      - '.kimi/**'
+  push:
+    branches: [main]
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run cargo-kimi
+        uses: ekhodzitsky/kimi-dotfiles/.github/actions/cargo-kimi@main
+        with:
+          strictness: standard
+          fail-on-drop: 60
+          post-comment: true

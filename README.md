@@ -1,60 +1,103 @@
-# kimi-dotfiles
+# kimi-dotfiles — AI Agent Coding Standard for Rust
 
-Guidelines and mechanized checks for writing correct Rust with **Kimi K2.6**.
+[![kimi-score](https://img.shields.io/badge/kimi--score-47%2F100-orange)](https://github.com/ekhodzitsky/kimi-dotfiles)
+[![cargo-kimi](https://img.shields.io/badge/cargo--kimi-v1.5.0-blue)](https://crates.io/crates/cargo-kimi)
 
-We use types to prevent bugs, contracts to document intent, property tests to verify behavior, and scripts to enforce rules automatically.
+> **Making AI-generated code reviewable by humans in 30 seconds.**
 
-## What This Does
+**AGENTS.md** is the `.eslintrc` for AI agents.  
+**cargo-kimi** is the enforcer.  
+**Score** is the quality gate.
 
-1. **Types prove invariants** — `Price(u64)` not `f64`, `Quantity<Meters>` not `f64`
-2. **Functions have contracts** — every `pub fn` has precondition/postcondition in doc comment
-3. **Property tests verify behavior** — associativity, identity, commutativity via `proptest`
-4. **Scripts enforce rules** — `check-contracts.py` verifies Hoare triples and forbids `unwrap()`
+When Kimi (or any agent) opens your repo, it reads `AGENTS.md` automatically via `${KIMI_AGENTS_MD}` and knows your invariants before it writes a single line of code.
 
-## How It Works
+---
 
-When you run `kimi` (Kimi Code CLI) in a project directory, it automatically discovers and injects `AGENTS.md` into the system prompt via `${KIMI_AGENTS_MD}`. This means **zero configuration** — place the file and Kimi follows your rules.
+## 30-Second Demo
 
-Supported locations (checked in order):
-1. `.kimi/AGENTS.md` — project-local config (highest priority)
-2. `AGENTS.md` — standard location
+```bash
+# 1. Install the enforcer
+cargo install cargo-kimi
 
-Files are merged root→leaf with source annotations. Deeper directories override parent rules.
+# 2. Initialize AGENTS.md in your project
+cargo kimi init --template rust-only --yes
+
+# 3. Run the quality gate
+cargo kimi check
+# → src/error.rs   (score: 80)
+# → src/ffi.rs     (score: 40)  [CRITICAL] L17: unwrap() outside test
+# Average score: 60/100
+
+# 4. Watch your team improve over time
+cargo kimi trend --days 30
+# → 2026-05-01  ████████░░ 45/100
+# → 2026-05-04  █████████░ 47/100
+```
+
+---
+
+## Why This Exists
+
+AI coding assistants are fast—but left unchecked they produce:
+
+- `unwrap()` in production paths
+- Functions without documentation
+- `f64` where `Price(u64)` should live
+- No proof that types actually encode invariants
+
+The result: **a code review that takes 30 minutes instead of 30 seconds.**
+
+kimi-dotfiles fixes this by making the agent's constraints *explicit*, *measurable*, and *enforcable*.
+
+---
+
+## What It Does
+
+| Layer | What | Where |
+|-------|------|-------|
+| **Contract** | `AGENTS.md` tells the agent your rules | Root or `.kimi/` |
+| **Measure** | `cargo kimi check` scores every file 0-100 | CI or pre-commit |
+| **Enforce** | Clippy + contract checker block bad commits | `.cargo/config.toml` |
+| **Track** | `cargo kimi trend` shows score history | `.kimi/score-history.jsonl` |
+
+### Honesty Policy
+
+We do **not** claim mathematical proof. We claim:
+- **Types encode invariants** — `NonZeroU64` beats `u64 > 0` comments.
+- **Tests find bugs** — property tests catch edge cases humans miss.
+- **Hoare triples are documentation prompts** — `/// { pre } fn foo() { post }` tells the next agent (human or AI) what the function promises.
+
+---
 
 ## Quick Start
 
-### Option A: Interactive installer
+### Option A: Cargo subcommand (recommended)
+
+```bash
+# Install once
+cargo install cargo-kimi
+
+# Initialize in any Rust project
+cargo kimi init --template rust-only --yes
+
+# Place in .kimi/ for automatic Kimi CLI discovery
+cargo kimi init --template rust-only --location .kimi --yes
+
+# Run checks
+cargo kimi check
+```
+
+### Option B: Interactive installer
 
 ```bash
 cd your-rust-project
 bash /path/to/kimi-dotfiles/install.sh
 ```
 
-### Option B: Non-interactive
+### Option C: Non-interactive
 
 ```bash
-cd your-rust-project
-bash /path/to/kimi-dotfiles/install.sh --template rust-only --yes
-
-# With strictness level (relaxed | standard | strict):
 bash /path/to/kimi-dotfiles/install.sh --template rust-only --strictness relaxed --yes
-```
-
-### Option C: Cargo subcommand (recommended)
-
-```bash
-# Install once
-cargo install cargo-kimi
-
-# Use in any project
-cargo kimi init --template rust-only --yes
-cargo kimi check
-
-# Place in .kimi/ for automatic Kimi CLI discovery
-cargo kimi init --template rust-only --location .kimi --yes
-
-# Auto-generate property tests for your newtypes
-cargo kimi generate-tests
 ```
 
 ### Option D: Manual copy
@@ -64,40 +107,37 @@ cp kimi-dotfiles/templates/rust-only/AGENTS.md your-project/AGENTS.md
 cp kimi-dotfiles/.cargo/config.toml your-project/.cargo/config.toml
 ```
 
-## Structure
+---
 
-```
-kimi-dotfiles/
-├── AGENTS.md                    # The 5 rules (short, self-contained)
-├── FORMALISM.md                 # Patterns: Phantom types, Hoare triples, proptest, Kani
-├── GLOSSARY.md                  # Vocabulary: Invariant, Precondition, Monoid, Functor
-├── PIPELINE.md                  # Development process: Spec → Type Design → Implement → Verify
-├── SEVERITY.md                  # Issue classification
-├── README.md                    # This file
-├── CHANGELOG.md                 # Version history
-├── LICENSE                      # MIT
-├── INSTALL.md                   # Integration guide
-├── install.sh                   # Interactive installer
-├── cargo-kimi/                  # Cargo subcommand (init, check, verify, upgrade)
-├── .gitignore
-├── strictness/
-│   ├── relaxed.toml             # Warnings only — gradual adoption
-│   ├── standard.toml            # Deny unwrap/panic, warn others (default)
-│   └── strict.toml              # Deny everything — maximum rigor
-├── .cargo/config.toml           # Clippy rules (installed from strictness/ by install.sh)
-├── scripts/
-│   └── check-contracts.py       # Mechanized contract verification
-├── .github/workflows/lint.yml   # CI: cargo test, clippy, contract checker
-├── languages/
-│   └── rust/AGENTS.md           # Full Rust guidelines (350+ lines)
-├── templates/
-│   ├── minimal/AGENTS.md        # Base only (35 lines)
-│   ├── rust-only/AGENTS.md      # Base + Rust summary (85 lines)
-│   └── full/AGENTS.md           # Complete ruleset
-├── examples/
-│   ├── existing-project/        # Merge example for existing AGENTS.md
-│   └── rust-demo/               # Real Cargo project with Monoid, Phantom types, SortedVec
-```
+## Features
+
+| Command | What it does |
+|---------|--------------|
+| `cargo kimi init` | Create `AGENTS.md` + clippy config |
+| `cargo kimi init --template modular` | Create `AGENTS.md` + `parts/` for large teams |
+| `cargo kimi check` | Run contract checker, clippy, tests. Output per-file score 0-100 |
+| `cargo kimi trend` | ASCII chart of score history over time |
+| `cargo kimi verify` | Run Kani formal verification (if installed) |
+| `cargo kimi generate-tests` | Auto-generate `proptest` property tests for newtypes |
+| `cargo kimi init-skill` | Create `SKILL.md` with YAML frontmatter |
+| `cargo kimi mcp` | MCP server for integration with other agents |
+| `cargo kimi upgrade` | Show upgrade instructions |
+
+---
+
+## Kimi-Specific Integration
+
+When you run `kimi` in a project directory, it automatically discovers and injects `AGENTS.md` into the system prompt via `${KIMI_AGENTS_MD}`.
+
+**Zero configuration.** Place the file and Kimi follows your rules.
+
+Supported locations (checked in order):
+1. `.kimi/AGENTS.md` — project-local config (highest priority)
+2. `AGENTS.md` — standard location
+
+Files are merged root→leaf with source annotations. Deeper directories override parent rules.
+
+---
 
 ## Example: Before vs After
 
@@ -119,59 +159,7 @@ pub fn calculate(price: Price, rate: TaxRate) -> Price {
 }
 ```
 
-## Mechanized Verification
-
-```bash
-# Check that every pub fn has a contract and no forbidden unwrap()
-python3 scripts/check-contracts.py examples/rust-demo/src/
-# ✅ All contracts satisfied.
-
-# With strictness filtering:
-python3 scripts/check-contracts.py --strictness relaxed examples/rust-demo/src/
-```
-
-### Auto-generate property tests
-
-For newtypes with `Add`/`Sub`/`Mul`/`Ord`/`Eq`/`Clone`:
-
-```bash
-cargo kimi generate-tests
-# Creates src/kimi_property_tests.rs with associativity, commutativity, identity, transitivity, reflexivity tests
-```
-
-### Pre-commit hook
-
-Copy `pre-commit.example.yaml` to `.pre-commit-config.yaml` to block commits without contracts.
-
-### GitHub Action
-
-```yaml
-- uses: ekhodzitsky/kimi-dotfiles/.github/actions/kimi-dotfiles@main
-  with:
-    strictness: standard
-```
-
-CI runs this automatically on every PR.
-
-## Formal Verification (Optional)
-
-For critical code, use [Kani](https://github.com/model-checking/kani) — a model checker for Rust:
-
-```bash
-cargo install --locked kani-verifier
-cargo kani
-```
-
-See `examples/rust-demo/` for proof harnesses.
-
-## Key Documents
-
-| Document | Purpose |
-|----------|---------|
-| **[FORMALISM.md](FORMALISM.md)** | Concrete patterns: Hoare triples, PhantomData, Typestate, proptest, Miri, Kani, fuzzing |
-| **[GLOSSARY.md](GLOSSARY.md)** | Vocabulary: Lemma, Theorem, Axiom, Invariant, Monad, Homomorphism |
-| **[PIPELINE.md](PIPELINE.md)** | Development process with complexity gates |
-| **[SEVERITY.md](SEVERITY.md)** | CRITICAL = axiom violation, MAJOR = proof gap, MINOR = style, INFO = suggestion |
+---
 
 ## Migration Paths
 
@@ -183,17 +171,64 @@ See `examples/rust-demo/` for proof harnesses.
 
 Choose with `install.sh --strictness {relaxed|standard|strict}`. Default is `standard`.
 
+---
+
+## CI / Pre-commit
+
+### GitHub Action
+
+```yaml
+- uses: ekhodzitsky/kimi-dotfiles/.github/actions/kimi-dotfiles@main
+  with:
+    strictness: standard
+```
+
+### Pre-commit hook
+
+Copy `pre-commit.example.yaml` to `.pre-commit-config.yaml` to block commits without contracts.
+
+---
+
+## Key Documents
+
+| Document | Purpose |
+|----------|---------|
+| **[FORMALISM.md](FORMALISM.md)** | Concrete patterns: Hoare triples, PhantomData, Typestate, proptest, Miri, Kani, fuzzing |
+| **[GLOSSARY.md](GLOSSARY.md)** | Vocabulary: Lemma, Theorem, Axiom, Invariant, Monad, Homomorphism |
+| **[PIPELINE.md](PIPELINE.md)** | Development process with complexity gates |
+| **[SEVERITY.md](SEVERITY.md)** | CRITICAL = axiom violation, MAJOR = proof gap, MINOR = style, INFO = suggestion |
+
+---
+
+## Roadmap
+
+- [x] `cargo kimi check` with per-file scoring
+- [x] `cargo kimi trend` for score history
+- [x] Modular templates (`parts/`)
+- [x] MCP server for cross-agent integration
+- [ ] IDE extension (real-time score in editor)
+- [ ] SARIF output for GitHub Advanced Security
+- [ ] Custom rule DSL
+
+## Contributing
+
+PRs welcome. Open an issue first if the change is larger than a typo fix.
+
 ## Versioning
 
 Pin to a tag:
 ```bash
 git clone https://github.com/ekhodzitsky/kimi-dotfiles.git
 cd kimi-dotfiles
-git checkout v1.3.0
+git checkout v1.5.0
 ```
 
 In your project's `AGENTS.md`:
 ```markdown
-<!-- kimi-dotfiles: v1.3.0 -->
+<!-- kimi-dotfiles: v1.5.0 -->
 <!-- Strictness: standard -->
 ```
+
+## License
+
+MIT

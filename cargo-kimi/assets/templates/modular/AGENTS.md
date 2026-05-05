@@ -1,8 +1,11 @@
-# Rust Guidelines: Mathematical Programming
+# Project Guidelines
 
-> Version: 1.3.0 | Source: kimi-dotfiles/languages/rust/
+> Generated from kimi-dotfiles/templates/modular
+> Includes: base@v1.5.0 + rust@v1.3.0
 >
-> These rules apply to all `.rs` files. They extend [FORMALISM.md](../../FORMALISM.md), [GLOSSARY.md](../../GLOSSARY.md), [PIPELINE.md](../../PIPELINE.md), and [SEVERITY.md](../../SEVERITY.md).
+> <!-- Strictness: {STRICTNESS} -->
+
+<!-- PART: meta -->
 
 ## 0. Meta Principle
 
@@ -21,7 +24,7 @@ Before adding, removing, or refactoring anything, ask: **what problem does this 
 
 If the answer is "it looks better" or "the score goes up" — it's not engineering, it's decoration. Revert.
 
----
+<!-- PART: types -->
 
 ## I. Types as Axioms
 
@@ -35,7 +38,6 @@ Never use raw primitives where meaning matters.
 pub struct Price(u64); // cents
 
 // AXIOM: TaxRate in [0.0, 1.0]
-#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct TaxRate(f64);
 
 impl TaxRate {
@@ -46,14 +48,6 @@ impl TaxRate {
         if rate >= 0.0 && rate <= 1.0 { Some(Self(rate)) } else { None }
     }
 }
-
-/// { price.0 >= 0 && rate is Some }
-/// fn calculate(price: Price, rate: TaxRate) -> Price
-/// { ret.0 == price.0 + (price.0 as f64 * rate.0).round() as u64 }
-pub fn calculate(price: Price, rate: TaxRate) -> Price {
-    let tax = (price.cents() as f64 * rate.0).round() as u64;
-    Price::from_cents(price.cents() + tax)
-}
 ```
 
 ### Rule 1.2: Phantom Types for Dimensions
@@ -63,7 +57,6 @@ use std::marker::PhantomData;
 
 pub struct Meters;
 pub struct Seconds;
-pub struct MetersPerSecond;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Quantity<T>(f64, PhantomData<T>);
@@ -71,21 +64,6 @@ pub struct Quantity<T>(f64, PhantomData<T>);
 impl Quantity<Meters> {
     pub fn meters(v: f64) -> Self { Self(v, PhantomData) }
     pub fn value(&self) -> f64 { self.0 }
-}
-
-impl Quantity<Seconds> {
-    pub fn seconds(v: f64) -> Self { Self(v, PhantomData) }
-}
-
-/// { time.0 != 0.0 }
-/// fn velocity(dist: Quantity<Meters>, time: Quantity<Seconds>) -> Quantity<MetersPerSecond>
-/// { ret.0 == dist.0 / time.0 }
-pub fn velocity(
-    dist: Quantity<Meters>,
-    time: Quantity<Seconds>
-) -> Quantity<MetersPerSecond> {
-    debug_assert!(time.0 != 0.0, "time must be non-zero");
-    Quantity(dist.0 / time.0, PhantomData)
 }
 ```
 
@@ -96,40 +74,16 @@ use std::marker::PhantomData;
 
 pub struct Disconnected;
 pub struct Connected;
-pub struct Authenticated;
 
 pub struct Session<State> {
     socket: std::net::TcpStream,
     _state: PhantomData<State>,
 }
 
-/// { true }
-/// fn connect(addr: &str) -> Result<Session<Connected>, io::Error>
-/// { Ok(_) ==> TCP handshake succeeded }
 impl Session<Disconnected> {
     pub fn connect(addr: &str) -> std::io::Result<Session<Connected>> {
         let socket = std::net::TcpStream::connect(addr)?;
         Ok(Session { socket, _state: PhantomData })
-    }
-}
-
-/// { true }
-/// fn authenticate(self, token: &str) -> Result<Session<Authenticated>, io::Error>
-/// { Ok(_) ==> server accepted token }
-impl Session<Connected> {
-    pub fn authenticate(self, _token: &str) -> std::io::Result<Session<Authenticated>> {
-        // ... validate token
-        Ok(Session { socket: self.socket, _state: PhantomData })
-    }
-}
-
-/// { session is authenticated }
-/// fn send(&mut self, data: &[u8]) -> Result<usize, io::Error>
-/// { Ok(n) ==> n bytes written }
-impl Session<Authenticated> {
-    pub fn send(&mut self, data: &[u8]) -> std::io::Result<usize> {
-        use std::io::Write;
-        self.socket.write(data)
     }
 }
 ```
@@ -140,7 +94,6 @@ A newtype is justified only when it protects a module boundary. Wrapping and imm
 
 ```rust
 // BAD: ceremony. The newtype is created and unwrapped in the same breath.
-// No boundary is protected. The reader pays cognitive cost for zero benefit.
 pub fn process(v: u32) {
     let rate = Rate::new(v).unwrap_or(Rate(1)); // unwrap_or hides logic
     ...
@@ -161,7 +114,7 @@ pub(crate) fn from_raw(v: u32) -> Self {
 - `from_raw` → `pub(crate)` escape hatch for internal code that already guaranteed the invariant.
 - Never `Type::new(x).unwrap_or(...)` in the same function that computes `x`.
 
----
+<!-- PART: functions -->
 
 ## II. Functions as Lemmas: Hoare Logic
 
@@ -181,21 +134,11 @@ pub fn average(items: &[f64]) -> f64 {
 
 Use `debug_assert!` for preconditions the type system cannot enforce. Zero cost in release.
 
-```rust
-/// { divisor != 0 }
-/// fn div(numerator: f64, divisor: f64) -> f64
-/// { ret == numerator / divisor }
-pub fn div(numerator: f64, divisor: f64) -> f64 {
-    debug_assert!(divisor != 0.0, "divisor must be non-zero");
-    numerator / divisor
-}
-```
-
 ### Rule 2.3: Function Length ≤ 40 Lines
 
 A lemma must fit in working memory. If longer — decompose into sub-lemmas.
 
----
+<!-- PART: algebra -->
 
 ## III. Algebraic Structures as Traits
 
@@ -206,11 +149,6 @@ A lemma must fit in working memory. If longer — decompose into sub-lemmas.
 pub trait Semigroup: Clone + PartialEq {
     fn combine(&self, other: &Self) -> Self;
 }
-
-/// Axiom: ∃e. ∀a. combine(e, a) == a && combine(a, e) == a
-pub trait Monoid: Semigroup {
-    fn identity() -> Self;
-}
 ```
 
 ### Rule 3.2: Axioms MUST Be Verified by Property Tests
@@ -218,7 +156,6 @@ pub trait Monoid: Semigroup {
 ```rust
 #[cfg(test)]
 mod tests {
-    use super::*;
     use proptest::prelude::*;
 
     proptest! {
@@ -228,21 +165,11 @@ mod tests {
             let right = a.combine(&b).combine(&c);
             assert_eq!(left, right);
         }
-
-        #[test]
-        fn left_identity(a in any::<MyMonoid>()) {
-            assert_eq!(MyMonoid::identity().combine(&a), a);
-        }
-
-        #[test]
-        fn right_identity(a in any::<MyMonoid>()) {
-            assert_eq!(a.combine(&MyMonoid::identity()), a);
-        }
     }
 }
 ```
 
----
+<!-- PART: errors -->
 
 ## IV. Error Handling: Errors as Codomain
 
@@ -254,24 +181,21 @@ mod tests {
 // FORBIDDEN
 let port = env::var("PORT").unwrap().parse::<u16>().unwrap();
 
-// ALLOWED: compiler proves PORT is set (const context)
-const PORT: u16 = option_env!("PORT").unwrap().parse::<u16>().unwrap();
-
-// REQUIRED: handle all cases
+// REQUIRED
 let port: NonZeroU16 = env::var("PORT")
     .map_err(|e| Error::ConfigMissing("PORT", e))?
     .parse()
     .map_err(Error::InvalidPort)?;
 ```
 
----
+<!-- PART: iterators -->
 
 ## V. Iterators: Composition as Proof
 
 ### Rule 5.1: Iterator Chains > Nested Control Flow
 
 ```rust
-// BAD: Kimi gets lost in brackets, proof is implicit
+// BAD: Kimi gets lost in brackets
 let x = match maybe_y {
     Some(y) => match y.parse::<i32>() {
         Ok(z) if z > 0 => Some(z * 2),
@@ -287,7 +211,7 @@ let x = maybe_y
     .map(|z| z * 2);
 ```
 
----
+<!-- PART: unsafe -->
 
 ## VI. Unsafe: Proof Obligation
 
@@ -307,7 +231,7 @@ unsafe { std::slice::from_raw_parts_mut(ptr, len) }
 cargo +nightly miri test
 ```
 
----
+<!-- PART: testing -->
 
 ## VII. Testing: Universal Quantification
 
@@ -319,15 +243,7 @@ Every `Semigroup`, `Monoid`, `Functor` implementation MUST have property tests.
 
 Every public function MUST have a doc test.
 
-### Rule 7.3: Fuzzing for Parsers
-
-Every parser MUST have a fuzz target:
-
-```bash
-cargo fuzz run parse_target
-```
-
----
+<!-- PART: automation -->
 
 ## VIII. Automation
 
@@ -350,38 +266,16 @@ cargo test
 cargo doc --no-deps
 ```
 
-For projects with `unsafe`:
-```bash
-cargo +nightly miri test
-```
+### Rule 8.3: Mechanized Contract Checks
 
-For projects with parsers:
-```bash
-cargo fuzz run target_name -- -max_total_time=60
-```
+Run `cargo kimi check` before every commit to verify:
+- Every `pub fn` has a Hoare triple doc comment
+- No `unwrap()` / `expect()` / `panic!()` outside tests
+- Every `unsafe` block has a `// SAFETY:` comment
 
----
+<!-- PART: checklist -->
 
-## IX. LLM-Specific: What Kimi Generates Well
-
-**Good:**
-- Explicit types (no inference in public APIs)
-- Small lemmas (≤ 40 lines)
-- Iterator chains (compositional proof)
-- Exhaustive match (proof by cases)
-- Standard collections
-
-**Bad:**
-- Nested match (> 3 levels)
-- Multiple closures in one line
-- Custom macros / DSLs
-- Complex HRTB
-
-**Rule:** If Kimi would need to "reason" about code, decompose it so reasoning is in types.
-
----
-
-## X. Checklist
+## IX. Checklist
 
 - [ ] Change is justified: it prevents a concrete bug or clarifies an invariant
 - [ ] Hoare triple in doc comment
@@ -394,4 +288,10 @@ cargo fuzz run target_name -- -max_total_time=60
 - [ ] No nesting > 3 levels
 - [ ] clippy passes without warnings
 - [ ] All tests pass (unit + property + doc)
-- [ ] Fuzzing passes (if parser)
+- [ ] `cargo kimi check` passes
+
+<!-- PART: project-specific -->
+
+## X. Project-Specific Rules
+
+<!-- Add your project conventions here -->

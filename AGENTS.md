@@ -2,6 +2,12 @@
 
 > Version: 1.5.0 | Repository: https://github.com/ekhodzitsky/kimi-dotfiles
 
+## Meta Principle
+
+Before applying any rule, ask: **what problem does this solve?**
+
+A newtype, a Hoare triple, or a refactor is justified only if it prevents a concrete bug, clarifies an invariant, or removes a footgun. If the answer is "it looks better" or "the score goes up" — revert. Decoration is not engineering.
+
 ## The 5 Rules
 
 ### 1. Types Prove Invariants
