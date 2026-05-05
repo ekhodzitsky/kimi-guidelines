@@ -1,6 +1,6 @@
 # Development Pipeline: Proof Construction
 
-> Version: 1.3.0 | Mathematical approach: Specification → Type-Level Proof → Implementation → Property Verification → Refinement
+> Version: 1.5.0 | Mathematical approach: Specification → Type-Level Proof → Implementation → Property Verification → Refinement
 
 ## Overview
 

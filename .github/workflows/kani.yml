@@ -24,7 +24,12 @@ jobs:
           cargo install --locked kani-verifier
           cargo kani setup
 
-      - name: Run Kani proofs
+      - name: Run Kani proofs (rust-demo)
         run: |
           cd examples/rust-demo
+          cargo kani
+
+      - name: Run Kani proofs (rust-http-client)
+        run: |
+          cd examples/rust-http-client
           cargo kani

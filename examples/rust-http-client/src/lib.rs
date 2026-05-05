@@ -16,7 +16,7 @@ pub mod kani_proofs;
 pub use client::{Authenticated, GitHubClient, Unauthenticated};
 pub use error::Error;
 pub use types::{
-    ApiKey, ApiUrl, Issue, Page, PageToken, Paginated, PerPage, Repository, User,
+    ApiKey, ApiUrl, Issue, Page, PageToken, Paginated, PerPage, Repository,
 };
 
 /// { true }

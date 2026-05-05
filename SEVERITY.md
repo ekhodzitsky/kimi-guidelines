@@ -1,6 +1,6 @@
 # Severity Classification: Proof Integrity
 
-> Version: 1.3.0 | Based on mathematical principles: axiom violation = CRITICAL, proof gap = MAJOR, presentation = MINOR, elegance = INFO
+> Version: 1.5.0 | Based on mathematical principles: axiom violation = CRITICAL, proof gap = MAJOR, presentation = MINOR, elegance = INFO
 
 ## Classification
 

@@ -262,14 +262,6 @@ pub struct Issue {
     pub body: Option<String>,
 }
 
-/// A GitHub user.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct User {
-    pub id: u64,
-    pub login: String,
-    pub avatar_url: String,
-}
-
 /// A paginated response wrapper.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Paginated<T> {

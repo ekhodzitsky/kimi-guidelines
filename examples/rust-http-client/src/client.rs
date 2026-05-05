@@ -155,9 +155,9 @@ impl GitHubClient<Authenticated> {
         per_page: PerPage,
     ) -> Result<Paginated<Repository>, Error> {
         let base = self.base_url.as_str();
-        let since = page.get();
+        let page_num = page.get();
         let count = per_page.get();
-        let url = format!("{base}/repositories?since={since}&per_page={count}");
+        let url = format!("{base}/repositories?page={page_num}&per_page={count}");
 
         let token = self.state.token.as_str();
         let request = self
@@ -173,7 +173,7 @@ impl GitHubClient<Authenticated> {
         if status.is_success() {
             let items: Vec<Repository> = response.json().await?;
             let next = if items.len() == per_page.get() as usize {
-                PageToken::new(Some(format!("{}", page.get() + per_page.get() as u32)))
+                PageToken::new(Some(format!("{}", page.get() + 1)))
             } else {
                 PageToken::default()
             };
@@ -183,7 +183,7 @@ impl GitHubClient<Authenticated> {
             })
         } else {
             let body = response.text().await?;
-            Err(Error::InvalidUrl(format!("HTTP {status}: {body}")))
+            Err(Error::Http(status.as_u16(), body))
         }
     }
 
@@ -246,7 +246,7 @@ impl GitHubClient<Authenticated> {
             })
         } else {
             let body = response.text().await?;
-            Err(Error::InvalidUrl(format!("HTTP {status}: {body}")))
+            Err(Error::Http(status.as_u16(), body))
         }
     }
 }

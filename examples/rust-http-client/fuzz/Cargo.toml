@@ -17,3 +17,9 @@ name = "parse_response"
 path = "fuzz_targets/parse_response.rs"
 test = false
 doc = false
+
+[[bin]]
+name = "parse_issues"
+path = "fuzz_targets/parse_issues.rs"
+test = false
+doc = false

@@ -1,6 +1,6 @@
 # Formal Methods in Rust: Practical Toolkit
 
-> Version: 1.3.0 | kimi-guidelines
+> Version: 1.5.0 | kimi-guidelines
 >
 > Concrete tools, crates, and patterns for implementing rigorous Rust code.
 
@@ -27,8 +27,7 @@ Use `debug_assert!` for preconditions and postconditions in debug builds. Zero c
 
 ```rust
 pub fn divide(n: Numerator, d: NonZero<Denominator>) -> Quotient {
-    debug_assert!(*d != 0, "Denominator must be non-zero (guaranteed by type)");
-    // In release: compiler has already proven d != 0 via NonZero type
+    // NonZero type guarantees d != 0 at compile time — no runtime check needed
     Quotient(n / d)
 }
 ```
@@ -102,13 +101,15 @@ impl Quantity<Meter> {
     }
 }
 
+pub struct MeterPerSecond;
+
 /// { true }
-/// fn velocity(distance: Quantity<Meter>, time: Quantity<Second>) -> Quantity<(Meter, Second)>
+/// fn velocity(distance: Quantity<Meter>, time: Quantity<Second>) -> Quantity<MeterPerSecond>
 /// { ret.value == distance.value / time.value }
 pub fn velocity(
     distance: Quantity<Meter>,
     time: Quantity<Second>,
-) -> Quantity<(Meter, Second)> {
+) -> Quantity<MeterPerSecond> {
     Quantity(distance.0 / time.0, PhantomData)
 }
 ```
@@ -181,6 +182,8 @@ pub trait Monoid: Semigroup {
     }
 }
 ```
+
+**Note:** Axiom-checking methods (`assoc`, `left_identity`) are one approach. An alternative is to verify axioms via property-based tests (see §4). The example projects use the proptest approach.
 
 These axioms MUST be verified via property-based tests (see §4).
 

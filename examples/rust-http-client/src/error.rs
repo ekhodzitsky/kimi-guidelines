@@ -15,6 +15,10 @@ pub enum Error {
     #[error("invalid URL: {0}")]
     InvalidUrl(String),
 
+    /// The API returned a non-success status code.
+    #[error("HTTP {0}: {1}")]
+    Http(u16, String),
+
     /// The provided API token is empty.
     #[error("API token must be non-empty")]
     InvalidToken,

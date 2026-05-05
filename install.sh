@@ -97,6 +97,12 @@ if [ -z "$TEMPLATE" ]; then
     esac
 fi
 
+# Compute template directory
+TEMPLATE_DIR="$SCRIPT_DIR/templates/rust/$TEMPLATE"
+if [ "$TEMPLATE" = "python" ]; then
+    TEMPLATE_DIR="$SCRIPT_DIR/templates/python"
+fi
+
 # Determine target path
 TARGET_PATH="AGENTS.md"
 if [ -f ".kimi/AGENTS.md" ]; then
@@ -124,11 +130,7 @@ if [ "$HAS_EXISTING" = true ]; then
                 [ -f ".kimi/AGENTS.md" ] && cp ".kimi/AGENTS.md" ".kimi/AGENTS.md.backup"
                 ;;
             2)
-                TEMPLATE_DIR="$SCRIPT_DIR/templates/rust/$TEMPLATE"
-if [ "$TEMPLATE" = "python" ]; then
-    TEMPLATE_DIR="$SCRIPT_DIR/templates/python"
-fi
-cp "$TEMPLATE_DIR/AGENTS.md" "AGENTS.md.new"
+                cp "$TEMPLATE_DIR/AGENTS.md" "AGENTS.md.new"
                 echo "Copied to AGENTS.md.new — review and merge manually."
                 exit 0
                 ;;
@@ -143,10 +145,6 @@ fi
 # Copy template
 echo ""
 echo "Installing $TEMPLATE template to $TARGET_PATH..."
-TEMPLATE_DIR="$SCRIPT_DIR/templates/rust/$TEMPLATE"
-if [ "$TEMPLATE" = "python" ]; then
-    TEMPLATE_DIR="$SCRIPT_DIR/templates/python"
-fi
 cp "$TEMPLATE_DIR/AGENTS.md" "$TARGET_PATH"
 
 # Update strictness comment in the generated AGENTS.md
@@ -180,4 +178,4 @@ echo "  2. Add project-specific rules at the bottom"
 echo "  3. Commit: git add AGENTS.md .cargo/config.toml && git commit -m 'Add kimi-guidelines guidelines'"
 echo ""
 echo "Version lock:"
-echo "  <!-- kimi-guidelines: v1.3.0 -->"
+echo "  <!-- kimi-guidelines: v1.5.0 -->"

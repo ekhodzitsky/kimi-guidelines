@@ -23,4 +23,4 @@ runs:
 
     - name: Run cargo-kimi check
       shell: bash
-      run: cargo kimi check --strictness ${{ inputs.strictness }}
+      run: cargo kimi check --strictness "${{ inputs.strictness }}"
