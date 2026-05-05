@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dtolnay/rust-action@stable
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: Run tests
         working-directory: cargo-kimi
@@ -43,7 +43,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dtolnay/rust-action@stable
+      - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
 
@@ -78,7 +78,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dtolnay/rust-action@stable
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: Dry-run crates.io publish
         working-directory: cargo-kimi
