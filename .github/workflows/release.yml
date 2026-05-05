@@ -49,7 +49,7 @@ jobs:
 
       - name: Build release binary
         working-directory: cargo-kimi
-        run: cargo build --release --locked --target ${{ matrix.target }}
+        run: cargo build --release --target ${{ matrix.target }}
 
       - name: Package binary (Unix)
         if: matrix.ext == ''
@@ -82,7 +82,7 @@ jobs:
 
       - name: Dry-run crates.io publish
         working-directory: cargo-kimi
-        run: cargo publish --dry-run --locked
+        run: cargo publish --dry-run
 
   release:
     name: Create GitHub Release
