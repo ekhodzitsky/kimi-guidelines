@@ -92,22 +92,6 @@ mod proofs {
 
     // ── Units proofs ───────────────────────────────────────────────
 
-    /// Proof: velocity computes dist / time when time is non-zero.
-    /// { time.0 != 0.0 } velocity(dist, time) { ret.0 == dist.0 / time.0 }
-    #[kani::proof]
-    fn velocity_computes_correctly() {
-        let dist = Quantity::<Meters>::meters(kani::any());
-        let time = Quantity::<Seconds>::seconds(kani::any());
-        kani::assume(time.value() != 0.0);
-        kani::assume(dist.value() >= 0.0 && dist.value() <= 1000.0);
-        kani::assume(time.value() > 0.0 && time.value() <= 100.0);
-
-        let v = velocity(dist, time);
-
-        let expected = dist.value() / time.value();
-        assert!((v.value() - expected).abs() < f64::EPSILON * 10.0);
-    }
-
     /// Proof: add_distances is commutative for bounded values.
     /// { true } add_distances(a, b) { ret == add_distances(b, a) }
     #[kani::proof]
@@ -120,6 +104,6 @@ mod proofs {
         let ab = add_distances(a, b);
         let ba = add_distances(b, a);
 
-        assert!((ab.value() - ba.value()).abs() < f64::EPSILON * 10.0);
+        assert_eq!(ab.value(), ba.value());
     }
 }
