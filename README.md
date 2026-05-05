@@ -2,6 +2,7 @@
 
 [![kimi-score](https://img.shields.io/badge/kimi--score-47%2F100-orange)](https://github.com/ekhodzitsky/kimi-guidelines)
 [![cargo-kimi](https://img.shields.io/badge/cargo--kimi-v1.6.6-blue)](https://crates.io/crates/cargo-kimi)
+[![CI](https://github.com/ekhodzitsky/kimi-guidelines/actions/workflows/lint.yml/badge.svg)](https://github.com/ekhodzitsky/kimi-guidelines/actions)
 
 > **Making AI-generated code reviewable by humans in 30 seconds.**
 
@@ -23,10 +24,11 @@ kimi-guidelines/
 ├── PIPELINE.md               # Development process with complexity gates
 ├── SEVERITY.md               # CRITICAL = axiom violation, MAJOR = proof gap, etc.
 ├── templates/                # AGENTS.md templates by project type
-│   ├── minimal/
-│   ├── rust-only/
-│   ├── full/
-│   ├── modular/
+│   ├── rust/
+│   │   ├── minimal/
+│   │   ├── rust-only/
+│   │   ├── full/
+│   │   └── modular/
 │   └── python/
 ├── strictness/               # Clippy configs: relaxed, standard, strict
 ├── examples/                 # Example projects following the guidelines
@@ -156,7 +158,7 @@ bash /path/to/kimi-guidelines/install.sh --template rust-only --strictness relax
 ### Option D: Manual copy
 
 ```bash
-cp kimi-guidelines/templates/rust-only/AGENTS.md your-project/AGENTS.md
+cp kimi-guidelines/templates/rust/rust-only/AGENTS.md your-project/AGENTS.md
 cp kimi-guidelines/.cargo/config.toml your-project/.cargo/config.toml
 ```
 

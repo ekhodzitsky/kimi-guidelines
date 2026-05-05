@@ -66,9 +66,9 @@ bash install.sh --strictness strict --yes
 
 | If your project has... | Include from kimi-guidelines |
 |------------------------|---------------------------|
-| No rules yet | `templates/full/AGENTS.md` + `.cargo/config.toml` |
+| No rules yet | `templates/rust/full/AGENTS.md` + `.cargo/config.toml` |
 | Existing AGENTS.md | Merge manually or use installer |
-| Only Rust | `templates/rust-only/AGENTS.md` |
+| Only Rust | `templates/rust/rust-only/AGENTS.md` |
 | Custom config | Installer backs up existing files |
 
 ## Version Pinning

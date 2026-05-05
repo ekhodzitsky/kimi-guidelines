@@ -1,6 +1,6 @@
 # Project Guidelines
 
-> Generated from kimi-dotfiles/templates/minimal
+> Generated from kimi-guidelines/templates/rust/minimal
 > Version: 1.5.0
 >
 > <!-- Strictness: standard -->

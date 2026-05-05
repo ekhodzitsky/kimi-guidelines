@@ -124,7 +124,11 @@ if [ "$HAS_EXISTING" = true ]; then
                 [ -f ".kimi/AGENTS.md" ] && cp ".kimi/AGENTS.md" ".kimi/AGENTS.md.backup"
                 ;;
             2)
-                cp "$SCRIPT_DIR/templates/$TEMPLATE/AGENTS.md" "AGENTS.md.new"
+                TEMPLATE_DIR="$SCRIPT_DIR/templates/rust/$TEMPLATE"
+if [ "$TEMPLATE" = "python" ]; then
+    TEMPLATE_DIR="$SCRIPT_DIR/templates/python"
+fi
+cp "$TEMPLATE_DIR/AGENTS.md" "AGENTS.md.new"
                 echo "Copied to AGENTS.md.new — review and merge manually."
                 exit 0
                 ;;
@@ -139,7 +143,11 @@ fi
 # Copy template
 echo ""
 echo "Installing $TEMPLATE template to $TARGET_PATH..."
-cp "$SCRIPT_DIR/templates/$TEMPLATE/AGENTS.md" "$TARGET_PATH"
+TEMPLATE_DIR="$SCRIPT_DIR/templates/rust/$TEMPLATE"
+if [ "$TEMPLATE" = "python" ]; then
+    TEMPLATE_DIR="$SCRIPT_DIR/templates/python"
+fi
+cp "$TEMPLATE_DIR/AGENTS.md" "$TARGET_PATH"
 
 # Update strictness comment in the generated AGENTS.md
 sed -i.bak "s/<!-- Strictness: standard -->/<!-- Strictness: $STRICTNESS -->/" "$TARGET_PATH" && rm -f "$TARGET_PATH.bak"

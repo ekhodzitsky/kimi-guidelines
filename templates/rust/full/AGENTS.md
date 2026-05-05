@@ -1,11 +1,11 @@
 # Project Guidelines
 
-> Generated from kimi-dotfiles/templates/full
+> Generated from kimi-guidelines/templates/rust/full
 > Includes: base@v1.3.0 + rust@v1.3.0
 >
 > <!-- Strictness: standard -->
 
-This is the complete ruleset. For a shorter version, use `templates/rust-only/AGENTS.md`.
+This is the complete ruleset. For a shorter version, use `templates/rust/rust-only/AGENTS.md`.
 
 ## Base Rules
 

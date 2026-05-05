@@ -23,15 +23,22 @@ jobs:
           test -f LICENSE
           test -f install.sh
           test -d languages/rust
-          test -d templates/minimal
-          test -d templates/rust-only
-          test -d templates/full
+          test -d templates/rust/minimal
+          test -d templates/rust/rust-only
+          test -d templates/rust/full
+          test -d templates/python
           test -d strictness
           test -f strictness/relaxed.toml
           test -f strictness/standard.toml
           test -f strictness/strict.toml
           test -d examples/rust-demo
           test -f examples/rust-demo/Cargo.toml
+
+      - name: ShellCheck install.sh
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y shellcheck
+          shellcheck install.sh
 
   contracts:
     runs-on: ubuntu-latest
@@ -77,20 +84,4 @@ jobs:
           cd examples/rust-demo
           cargo doc --no-deps
 
-  kani:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # stable
-
-      - name: Install Kani
-        run: |
-          cargo install --locked kani-verifier
-          cargo kani setup
-
-      - name: Run Kani proofs
-        run: |
-          cd examples/rust-demo
-          cargo kani
