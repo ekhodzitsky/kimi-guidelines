@@ -1,19 +1,49 @@
-# kimi-dotfiles — AI Agent Coding Standard for Rust
+# kimi-guidelines — AI Agent Coding Standards
 
-[![kimi-score](https://img.shields.io/badge/kimi--score-47%2F100-orange)](https://github.com/ekhodzitsky/kimi-dotfiles)
-[![cargo-kimi](https://img.shields.io/badge/cargo--kimi-v1.5.0-blue)](https://crates.io/crates/cargo-kimi)
+[![kimi-score](https://img.shields.io/badge/kimi--score-47%2F100-orange)](https://github.com/ekhodzitsky/kimi-guidelines)
+[![cargo-kimi](https://img.shields.io/badge/cargo--kimi-v1.6.6-blue)](https://crates.io/crates/cargo-kimi)
 
 > **Making AI-generated code reviewable by humans in 30 seconds.**
 
 **AGENTS.md** is the `.eslintrc` for AI agents.  
-**cargo-kimi** is the enforcer.  
+**[cargo-kimi](https://github.com/ekhodzitsky/cargo-kimi)** is the enforcer (Rust).  
 **Score** is the quality gate.
 
 When Kimi (or any agent) opens your repo, it reads `AGENTS.md` automatically via `${KIMI_AGENTS_MD}` and knows your invariants before it writes a single line of code.
 
 ---
 
-## 30-Second Demo
+## Repository Structure
+
+```
+kimi-guidelines/
+├── AGENTS.md                 # Root guidelines (applies to all subdirectories)
+├── FORMALISM.md              # Concrete patterns: Hoare triples, PhantomData, Typestate
+├── GLOSSARY.md               # Vocabulary: Lemma, Theorem, Axiom, Invariant, Monad
+├── PIPELINE.md               # Development process with complexity gates
+├── SEVERITY.md               # CRITICAL = axiom violation, MAJOR = proof gap, etc.
+├── templates/                # AGENTS.md templates by project type
+│   ├── minimal/
+│   ├── rust-only/
+│   ├── full/
+│   └── modular/
+├── strictness/               # Clippy configs: relaxed, standard, strict
+├── examples/                 # Example projects following the guidelines
+│   ├── rust-demo/
+│   └── rust-http-client/
+├── languages/                # Language-specific rule sets
+│   └── rust/
+├── scripts/                  # Helper scripts
+├── benchmarks/               # Prompt benchmarks and scoring rubrics
+├── skills/                   # Kimi CLI skills
+└── .github/
+    └── actions/
+        └── cargo-kimi/       # Reusable GitHub Action for CI
+```
+
+---
+
+## 30-Second Demo (Rust)
 
 ```bash
 # 1. Install the enforcer
@@ -47,7 +77,7 @@ AI coding assistants are fast—but left unchecked they produce:
 
 The result: **a code review that takes 30 minutes instead of 30 seconds.**
 
-kimi-dotfiles fixes this by making the agent's constraints *explicit*, *measurable*, and *enforcable*.
+kimi-guidelines fixes this by making the agent's constraints *explicit*, *measurable*, and *enforcable*.
 
 ---
 
@@ -71,7 +101,7 @@ We do **not** claim mathematical proof. We claim:
 
 ## Quick Start
 
-### Option A: Cargo subcommand (recommended)
+### Option A: Cargo subcommand (Rust, recommended)
 
 ```bash
 # Install once
@@ -87,41 +117,36 @@ cargo kimi init --template rust-only --location .kimi --yes
 cargo kimi check
 ```
 
+> **Note:** `cargo-kimi` now lives in its own repository:  
+> https://github.com/ekhodzitsky/cargo-kimi
+
 ### Option B: Interactive installer
 
 ```bash
 cd your-rust-project
-bash /path/to/kimi-dotfiles/install.sh
+bash /path/to/kimi-guidelines/install.sh
 ```
 
 ### Option C: Non-interactive
 
 ```bash
-bash /path/to/kimi-dotfiles/install.sh --template rust-only --strictness relaxed --yes
+bash /path/to/kimi-guidelines/install.sh --template rust-only --strictness relaxed --yes
 ```
 
 ### Option D: Manual copy
 
 ```bash
-cp kimi-dotfiles/templates/rust-only/AGENTS.md your-project/AGENTS.md
-cp kimi-dotfiles/.cargo/config.toml your-project/.cargo/config.toml
+cp kimi-guidelines/templates/rust-only/AGENTS.md your-project/AGENTS.md
+cp kimi-guidelines/.cargo/config.toml your-project/.cargo/config.toml
 ```
 
 ---
 
-## Features
+## Tools
 
-| Command | What it does |
-|---------|--------------|
-| `cargo kimi init` | Create `AGENTS.md` + clippy config |
-| `cargo kimi init --template modular` | Create `AGENTS.md` + `parts/` for large teams |
-| `cargo kimi check` | Run contract checker, clippy, tests. Output per-file score 0-100 |
-| `cargo kimi trend` | ASCII chart of score history over time |
-| `cargo kimi verify` | Run Kani formal verification (if installed) |
-| `cargo kimi generate-tests` | Auto-generate `proptest` property tests for newtypes |
-| `cargo kimi init-skill` | Create `SKILL.md` with YAML frontmatter |
-| `cargo kimi mcp` | MCP server for integration with other agents |
-| `cargo kimi upgrade` | Show upgrade instructions |
+| Tool | Language | Repository |
+|------|----------|------------|
+| `cargo-kimi` | Rust | [ekhodzitsky/cargo-kimi](https://github.com/ekhodzitsky/cargo-kimi) |
 
 ---
 
@@ -178,10 +203,12 @@ Choose with `install.sh --strictness {relaxed|standard|strict}`. Default is `sta
 ### GitHub Action
 
 ```yaml
-- uses: ekhodzitsky/kimi-dotfiles/.github/actions/kimi-dotfiles@main
+- uses: ekhodzitsky/kimi-guidelines/.github/actions/cargo-kimi@main
   with:
     strictness: standard
 ```
+
+> The action installs `cargo-kimi` from crates.io and runs checks automatically.
 
 ### Pre-commit hook
 
@@ -202,13 +229,23 @@ Copy `pre-commit.example.yaml` to `.pre-commit-config.yaml` to block commits wit
 
 ## Roadmap
 
+### Done
 - [x] `cargo kimi check` with per-file scoring
 - [x] `cargo kimi trend` for score history
 - [x] Modular templates (`parts/`)
 - [x] MCP server for cross-agent integration
+- [x] SARIF output for GitHub Advanced Security
+- [x] `cargo kimi watch` for continuous checking
+- [x] Standalone `cargo-kimi` repository
+
+### Planned
 - [ ] IDE extension (real-time score in editor)
-- [ ] SARIF output for GitHub Advanced Security
 - [ ] Custom rule DSL
+- [ ] Python agent guidelines (`py-kimi`?)
+- [ ] TypeScript agent guidelines (`ts-kimi`?)
+- [ ] Go agent guidelines (`go-kimi`?)
+
+---
 
 ## Contributing
 
@@ -218,14 +255,14 @@ PRs welcome. Open an issue first if the change is larger than a typo fix.
 
 Pin to a tag:
 ```bash
-git clone https://github.com/ekhodzitsky/kimi-dotfiles.git
-cd kimi-dotfiles
-git checkout v1.5.0
+git clone https://github.com/ekhodzitsky/kimi-guidelines.git
+cd kimi-guidelines
+git checkout v1.6.0
 ```
 
 In your project's `AGENTS.md`:
 ```markdown
-<!-- kimi-dotfiles: v1.5.0 -->
+<!-- kimi-guidelines: v1.6.0 -->
 <!-- Strictness: standard -->
 ```
 

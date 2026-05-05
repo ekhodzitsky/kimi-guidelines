@@ -7,20 +7,20 @@
 ```bash
 # Interactive installer — picks what you need
 cd your-project
-bash /path/to/kimi-dotfiles/install.sh
+bash /path/to/kimi-guidelines/install.sh
 
 # Or non-interactive:
-bash /path/to/kimi-dotfiles/install.sh --template rust-only --yes
+bash /path/to/kimi-guidelines/install.sh --template rust-only --yes
 
 # With strictness level (default: standard):
-bash /path/to/kimi-dotfiles/install.sh --template rust-only --strictness relaxed --yes
+bash /path/to/kimi-guidelines/install.sh --template rust-only --strictness relaxed --yes
 ```
 
 ### 2. Existing Project (already has AGENTS.md)
 
 ```bash
 cd your-project
-bash /path/to/kimi-dotfiles/install.sh
+bash /path/to/kimi-guidelines/install.sh
 # Choose: overwrite (backup created) or save as .new
 ```
 
@@ -28,7 +28,7 @@ Or manually merge:
 
 ```markdown
 <!-- My Project AGENTS.md -->
-<!-- Includes kimi-dotfiles: rust@v1.3.0 -->
+<!-- Includes kimi-guidelines: rust@v1.3.0 -->
 
 # Project-specific conventions
 - We use PostgreSQL
@@ -37,14 +37,14 @@ Or manually merge:
 ---
 
 ## Rust Module Rules
-<!-- @kimi-dotfiles: rust@v1.3.0 -->
+<!-- @kimi-guidelines: rust@v1.3.0 -->
 [Copy from languages/rust/AGENTS.md]
 ```
 
 ### 3. Team/Organization (shared baseline)
 
 ```bash
-git submodule add https://github.com/ekhodzitsky/kimi-dotfiles.git .kimi/dotfiles
+git submodule add https://github.com/ekhodzitsky/kimi-guidelines.git .kimi/dotfiles
 ```
 
 ## Migration Paths
@@ -64,7 +64,7 @@ bash install.sh --strictness strict --yes
 
 ## What to Include
 
-| If your project has... | Include from kimi-dotfiles |
+| If your project has... | Include from kimi-guidelines |
 |------------------------|---------------------------|
 | No rules yet | `templates/full/AGENTS.md` + `.cargo/config.toml` |
 | Existing AGENTS.md | Merge manually or use installer |
@@ -76,20 +76,20 @@ bash install.sh --strictness strict --yes
 Always pin to a tag:
 
 ```bash
-cd /path/to/kimi-dotfiles
+cd /path/to/kimi-guidelines
 git checkout v1.3.0
 ```
 
 In your `AGENTS.md`:
 ```markdown
-<!-- kimi-dotfiles: v1.3.0 -->
+<!-- kimi-guidelines: v1.3.0 -->
 <!-- Strictness: standard -->
 ```
 
 ## Updating
 
 ```bash
-cd /path/to/kimi-dotfiles
+cd /path/to/kimi-guidelines
 git fetch origin
 git checkout v1.3.0  # New stable version
 ```

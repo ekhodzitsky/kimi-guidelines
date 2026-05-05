@@ -1,6 +1,6 @@
 # Formal Methods in Rust: Practical Toolkit
 
-> Version: 1.3.0 | kimi-dotfiles
+> Version: 1.3.0 | kimi-guidelines
 >
 > Concrete tools, crates, and patterns for implementing rigorous Rust code.
 

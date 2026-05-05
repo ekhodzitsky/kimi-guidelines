@@ -1,4 +1,4 @@
-name: 'kimi-dotfiles check'
+name: 'kimi-guidelines check'
 description: 'Run cargo-kimi check, clippy, and tests with configurable strictness'
 inputs:
   strictness:

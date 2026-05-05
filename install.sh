@@ -1,13 +1,13 @@
 #!/bin/bash
-# kimi-dotfiles interactive installer
-# Usage: cd your-project && bash /path/to/kimi-dotfiles/install.sh
+# kimi-guidelines interactive installer
+# Usage: cd your-project && bash /path/to/kimi-guidelines/install.sh
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "=========================================="
-echo "  kimi-dotfiles installer"
+echo "  kimi-guidelines installer"
 echo "=========================================="
 echo ""
 
@@ -169,7 +169,7 @@ echo ""
 echo "Next steps:"
 echo "  1. Review $TARGET_PATH"
 echo "  2. Add project-specific rules at the bottom"
-echo "  3. Commit: git add AGENTS.md .cargo/config.toml && git commit -m 'Add kimi-dotfiles guidelines'"
+echo "  3. Commit: git add AGENTS.md .cargo/config.toml && git commit -m 'Add kimi-guidelines guidelines'"
 echo ""
 echo "Version lock:"
-echo "  <!-- kimi-dotfiles: v1.3.0 -->"
+echo "  <!-- kimi-guidelines: v1.3.0 -->"

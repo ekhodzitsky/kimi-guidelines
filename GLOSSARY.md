@@ -1,6 +1,6 @@
 # Mathematical Glossary for Code
 
-> Version: 1.3.0 | kimi-dotfiles
+> Version: 1.3.0 | kimi-guidelines
 >
 > Use these terms exactly. Consistent formal language eliminates ambiguity.
 

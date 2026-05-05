@@ -1,6 +1,6 @@
-# kimi-dotfiles Benchmark
+# kimi-guidelines Benchmark
 
-This directory contains an A/B benchmarking framework to measure whether code generated **with** the `kimi-dotfiles` guidelines produces higher-quality Rust than code generated without them.
+This directory contains an A/B benchmarking framework to measure whether code generated **with** the `kimi-guidelines` guidelines produces higher-quality Rust than code generated without them.
 
 ## Structure
 
@@ -79,7 +79,7 @@ python benchmarks/scoring/score_output.py path/to/output.rs --output report.json
 1. **Generate outputs**  
    Feed each prompt to Kimi K2.6 twice:
    - **Control group** — no system guidelines.
-   - **Treatment group** — prepend the `kimi-dotfiles` system prompt / guidelines.
+   - **Treatment group** — prepend the `kimi-guidelines` system prompt / guidelines.
 
 2. **Save outputs**  
    Place the generated `.rs` files under `benchmarks/results/control/` and `benchmarks/results/treatment/`.

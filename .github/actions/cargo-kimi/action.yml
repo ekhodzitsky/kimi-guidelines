@@ -1,5 +1,5 @@
 name: 'cargo-kimi'
-description: 'Run kimi-dotfiles contract checks on a Rust project'
+description: 'Run kimi-guidelines contract checks on a Rust project'
 author: 'ekhodzitsky'
 branding:
   icon: 'shield'

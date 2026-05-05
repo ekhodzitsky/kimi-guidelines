@@ -19,7 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`cargo kimi generate-tests`**: Auto-generates proptest property tests for newtypes with arithmetic impls (Add, Sub, Mul), Ord, Eq, Clone
 - **Workspace support**: `cargo kimi check` scans all workspace crates
 - **Published on crates.io**: `cargo install cargo-kimi`
-- **GitHub Action**: `.github/actions/kimi-dotfiles/action.yml` for reusable CI
+- **GitHub Action**: `.github/actions/kimi-guidelines/action.yml` for reusable CI
 - **Pre-commit hook**: `pre-commit.example.yaml` for local enforcement
 
 ### Changed
