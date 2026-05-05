@@ -19,7 +19,7 @@ jobs:
 
       - name: Run tests
         working-directory: cargo-kimi
-        run: cargo test --locked
+        run: cargo test
 
   build:
     name: Build Release Binary
