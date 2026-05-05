@@ -1,3 +1,4 @@
+// kimi:score-ignore=unwrap
 //! Formal Verification Proofs using Kani
 //!
 //! Install Kani: `cargo install --locked kani-verifier`

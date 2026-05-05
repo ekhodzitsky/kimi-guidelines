@@ -25,3 +25,7 @@ Thumbs.db
 *.backup
 *.backup.*
 AGENTS.md.new
+
+# cargo-kimi generated artifacts
+.kimi/
+kimi-score.svg
