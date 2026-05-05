@@ -16,6 +16,7 @@ proptest-regressions/
 *.swo
 *~
 .omc/
+**/.omc/
 
 # OS
 .DS_Store

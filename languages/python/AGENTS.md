@@ -1,6 +1,6 @@
 # Python Agent Guidelines
 
-> Version: 1.0.0 | Source: kimi-guidelines/languages/python/
+> Version: 1.6.0 | Source: kimi-dotfiles/languages/python/
 
 ## Type Safety
 

@@ -2,9 +2,9 @@
 name = "rust-demo"
 version = "0.1.0"
 edition = "2021"
-description = "Demo project for kimi-guidelines guidelines"
+description = "Demo project for kimi-dotfiles guidelines"
 license = "MIT"
-repository = "https://github.com/ekhodzitsky/kimi-guidelines"
+repository = "https://github.com/ekhodzitsky/kimi-dotfiles"
 
 [dev-dependencies]
 proptest = "1.0"

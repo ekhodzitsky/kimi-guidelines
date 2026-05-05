@@ -2,9 +2,9 @@
 name = "rust-http-client"
 version = "0.1.0"
 edition = "2021"
-description = "Real-world HTTP client example for kimi-guidelines guidelines"
+description = "Real-world HTTP client example for kimi-dotfiles guidelines"
 license = "MIT"
-repository = "https://github.com/ekhodzitsky/kimi-guidelines"
+repository = "https://github.com/ekhodzitsky/kimi-dotfiles"
 
 [dependencies]
 reqwest = { version = "0.12", features = ["json"] }

@@ -1,6 +1,6 @@
 # Project Guidelines
 
-> Generated from kimi-guidelines/templates/rust/rust-only
+> Generated from kimi-dotfiles/templates/rust/rust-only
 > Includes: base@v1.3.0 + rust@v1.3.0
 >
 > <!-- Strictness: standard -->

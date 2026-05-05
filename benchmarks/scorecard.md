@@ -1,4 +1,4 @@
-# A/B Scorecard: kimi-guidelines Guidelines
+# A/B Scorecard: kimi-dotfiles Guidelines
 
 **Date:** 2026-05-04
 **Methodology:** 10 realistic Rust coding prompts, generated twice (control without guidelines, treatment with AGENTS.md).

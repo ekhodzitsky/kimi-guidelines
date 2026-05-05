@@ -1,6 +1,6 @@
 # Guidelines for Correct Rust with Kimi K2.6
 
-> Version: 1.5.0 | Repository: https://github.com/ekhodzitsky/kimi-guidelines
+> Version: 1.6.0 | Repository: https://github.com/ekhodzitsky/kimi-dotfiles
 
 ## Meta Principle
 

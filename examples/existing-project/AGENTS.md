@@ -1,7 +1,7 @@
 # MyProject Guidelines
 
 <!-- This example shows how to merge kimi-dotfiles with your existing rules. -->
-<!-- Source: https://github.com/ekhodzitsky/kimi-guidelines/tree/main/examples/existing-project -->
+<!-- Source: https://github.com/ekhodzitsky/kimi-dotfiles/tree/main/examples/existing-project -->
 <!-- Includes kimi-dotfiles: rust@v1.3.0 -->
 
 ## Existing Project Rules (Highest Priority)
@@ -37,7 +37,7 @@ Apply `kimi-dotfiles/languages/rust/AGENTS.md` to all `src/**/*.rs`:
 - Iterator chains instead of nested `match`
 - `// SAFETY:` for every `unsafe` block
 
-Full reference: https://github.com/ekhodzitsky/kimi-guidelines/blob/main/languages/rust/AGENTS.md
+Full reference: https://github.com/ekhodzitsky/kimi-dotfiles/blob/main/languages/rust/AGENTS.md
 
 ---
 

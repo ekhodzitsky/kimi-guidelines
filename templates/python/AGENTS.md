@@ -1,7 +1,7 @@
 # Python Project Guidelines
 
-> Generated from kimi-guidelines/templates/python
-> Version: 1.0.0 | Strictness: standard
+> Generated from kimi-dotfiles/templates/python
+> Version: 1.6.0 | Strictness: standard
 
 ## Project Setup
 

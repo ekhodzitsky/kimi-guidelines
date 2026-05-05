@@ -1,13 +1,13 @@
 #!/bin/bash
-# kimi-guidelines interactive installer
-# Usage: cd your-project && bash /path/to/kimi-guidelines/install.sh
+# kimi-dotfiles interactive installer
+# Usage: cd your-project && bash /path/to/kimi-dotfiles/install.sh
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "=========================================="
-echo "  kimi-guidelines installer"
+echo "  kimi-dotfiles installer"
 echo "=========================================="
 echo ""
 
@@ -49,7 +49,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --help)
-            echo "Usage: install.sh [--template minimal|rust-only|full] [--strictness relaxed|standard|strict] [--yes]"
+            echo "Usage: install.sh [--template minimal|rust-only|full|python] [--strictness relaxed|standard|strict] [--yes]"
             echo ""
             echo "Options:"
             echo "  --template NAME      Use template without prompting"
@@ -98,9 +98,10 @@ if [ -z "$TEMPLATE" ]; then
 fi
 
 # Compute template directory
-TEMPLATE_DIR="$SCRIPT_DIR/templates/rust/$TEMPLATE"
 if [ "$TEMPLATE" = "python" ]; then
     TEMPLATE_DIR="$SCRIPT_DIR/templates/python"
+else
+    TEMPLATE_DIR="$SCRIPT_DIR/templates/rust/$TEMPLATE"
 fi
 
 # Determine target path
@@ -147,12 +148,19 @@ echo ""
 echo "Installing $TEMPLATE template to $TARGET_PATH..."
 cp "$TEMPLATE_DIR/AGENTS.md" "$TARGET_PATH"
 
-# Update strictness comment in the generated AGENTS.md
-sed -i.bak "s/<!-- Strictness: standard -->/<!-- Strictness: $STRICTNESS -->/" "$TARGET_PATH" && rm -f "$TARGET_PATH.bak"
+# Update strictness comment in the generated AGENTS.md (portable macOS/Linux)
+if command -v perl >/dev/null 2>&1; then
+    perl -pi -e "s/<!-- Strictness: standard -->/<!-- Strictness: $STRICTNESS -->/" "$TARGET_PATH"
+else
+    # Fallback: create temp file to avoid sed -i portability issues
+    TMPFILE=$(mktemp)
+    sed "s/<!-- Strictness: standard -->/<!-- Strictness: $STRICTNESS -->/" "$TARGET_PATH" > "$TMPFILE"
+    mv "$TMPFILE" "$TARGET_PATH"
+fi
 
 # Language-specific extras
-if [ "$HAS_RUST" = true ]; then
-    if [ "$TEMPLATE" = "rust-only" ] || [ "$TEMPLATE" = "full" ]; then
+if [ "$HAS_RUST" = true ] && [ "$TEMPLATE" != "python" ]; then
+    if [ "$TEMPLATE" = "rust-only" ] || [ "$TEMPLATE" = "full" ] || [ "$TEMPLATE" = "minimal" ]; then
         if [ -f ".cargo/config.toml" ]; then
             echo "  ⚠ .cargo/config.toml exists, creating backup..."
             cp ".cargo/config.toml" ".cargo/config.toml.backup.$(date +%s)"
@@ -175,7 +183,7 @@ echo ""
 echo "Next steps:"
 echo "  1. Review $TARGET_PATH"
 echo "  2. Add project-specific rules at the bottom"
-echo "  3. Commit: git add AGENTS.md .cargo/config.toml && git commit -m 'Add kimi-guidelines guidelines'"
+echo "  3. Commit: git add AGENTS.md .cargo/config.toml && git commit -m 'Add kimi-dotfiles guidelines'"
 echo ""
 echo "Version lock:"
-echo "  <!-- kimi-guidelines: v1.5.0 -->"
+echo "  <!-- kimi-dotfiles: v1.6.0 -->"

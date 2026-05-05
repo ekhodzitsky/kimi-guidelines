@@ -1,8 +1,7 @@
-# kimi-guidelines — AI Agent Coding Standards
+# kimi-dotfiles — AI Agent Coding Standards
 
-[![kimi-score](https://img.shields.io/badge/kimi--score-47%2F100-orange)](https://github.com/ekhodzitsky/kimi-guidelines)
 [![cargo-kimi](https://img.shields.io/badge/cargo--kimi-v1.6.6-blue)](https://crates.io/crates/cargo-kimi)
-[![CI](https://github.com/ekhodzitsky/kimi-guidelines/actions/workflows/lint.yml/badge.svg)](https://github.com/ekhodzitsky/kimi-guidelines/actions)
+[![CI](https://github.com/ekhodzitsky/kimi-dotfiles/actions/workflows/lint.yml/badge.svg)](https://github.com/ekhodzitsky/kimi-dotfiles/actions)
 
 > **Making AI-generated code reviewable by humans in 30 seconds.**
 
@@ -17,7 +16,7 @@ When Kimi (or any agent) opens your repo, it reads `AGENTS.md` automatically via
 ## Repository Structure
 
 ```
-kimi-guidelines/
+kimi-dotfiles/
 ├── AGENTS.md                 # Root guidelines (applies to all subdirectories)
 ├── FORMALISM.md              # Concrete patterns: Hoare triples, PhantomData, Typestate
 ├── GLOSSARY.md               # Vocabulary: Lemma, Theorem, Axiom, Invariant, Monad
@@ -73,16 +72,13 @@ cargo kimi trend --days 30
 
 ```bash
 # 1. Copy the Python guidelines
-cp kimi-guidelines/templates/python/AGENTS.md your-project/AGENTS.md
+cp kimi-dotfiles/templates/python/AGENTS.md your-project/AGENTS.md
 
 # 2. Install tools
 pip install mypy ruff black hypothesis pydantic pip-audit
 
-# 3. Run checks
-ruff check .
-mypy --strict .
-pytest
-pip-audit
+# 3. Run checks (or use the provided Makefile)
+make check
 ```
 
 > **Note:** `cargo-kimi` now lives in its own repository:  
@@ -101,7 +97,7 @@ AI coding assistants are fast—but left unchecked they produce:
 
 The result: **a code review that takes 30 minutes instead of 30 seconds.**
 
-kimi-guidelines fixes this by making the agent's constraints *explicit*, *measurable*, and *enforcable*.
+kimi-dotfiles fixes this by making the agent's constraints *explicit*, *measurable*, and *enforcable*.
 
 ---
 
@@ -145,20 +141,20 @@ cargo kimi check
 
 ```bash
 cd your-rust-project
-bash /path/to/kimi-guidelines/install.sh
+bash /path/to/kimi-dotfiles/install.sh
 ```
 
 ### Option C: Non-interactive
 
 ```bash
-bash /path/to/kimi-guidelines/install.sh --template rust-only --strictness relaxed --yes
+bash /path/to/kimi-dotfiles/install.sh --template rust-only --strictness relaxed --yes
 ```
 
 ### Option D: Manual copy
 
 ```bash
-cp kimi-guidelines/templates/rust/rust-only/AGENTS.md your-project/AGENTS.md
-cp kimi-guidelines/.cargo/config.toml your-project/.cargo/config.toml
+cp kimi-dotfiles/templates/rust/rust-only/AGENTS.md your-project/AGENTS.md
+cp kimi-dotfiles/.cargo/config.toml your-project/.cargo/config.toml
 ```
 
 ---
@@ -270,7 +266,9 @@ Copy `pre-commit.example.yaml` to `.pre-commit-config.yaml` to block commits wit
 
 ## Contributing
 
-PRs welcome. Areas where help is especially appreciated:
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
+
+Quick areas where help is especially appreciated:
 
 - New language guidelines (TypeScript, Go, Zig)
 - Additional `templates/` for frameworks (Axum, Actix, Django, FastAPI)
@@ -283,14 +281,14 @@ Open an issue first if the change is larger than a typo fix.
 
 Pin to a tag:
 ```bash
-git clone https://github.com/ekhodzitsky/kimi-guidelines.git
-cd kimi-guidelines
-git checkout v1.6.0
+git clone https://github.com/ekhodzitsky/kimi-dotfiles.git
+cd kimi-dotfiles
+git checkout v1.6.0  # or latest tag
 ```
 
 In your project's `AGENTS.md`:
 ```markdown
-<!-- kimi-guidelines: v1.6.0 -->
+<!-- kimi-dotfiles: v1.6.0 -->
 <!-- Strictness: standard -->
 ```
 
